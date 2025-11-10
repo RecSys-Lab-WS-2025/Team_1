@@ -1,0 +1,23 @@
+# General
+.DS_Store
+*.pyc
+__pycache__/
+.venv/
+env/
+venv/
+
+# Poetry
+poetry.lock
+
+# Environment files
+.env
+
+# Node / frontend
+node_modules/
+dist/
+.next/
+
+# IDE
+.idea/
+.vscode/
+
