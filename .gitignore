@@ -17,11 +17,14 @@ build/
 # Environment files
 .env
 frontend/.env*
+frontend/**/next-env.d.ts
 
 # Node / frontend
 node_modules/
 dist/
 .next/
+out/
+
 
 # SQLite databases
 *.db

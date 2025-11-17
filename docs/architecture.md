@@ -6,7 +6,6 @@
 - Configuration handled via Pydantic `Settings` sourced from `.env`.
 - Database access via SQLAlchemy ORM with async support (`app/database.py`).
 - Database models defined in `app/models/` directory.
-- API routes organized in versioned structure (`app/api/v1/`).
 
 ## Frontend (React TBD)
 
