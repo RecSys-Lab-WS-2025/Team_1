@@ -43,20 +43,36 @@ async def generate_welcome_summary(questionnaire: ProfileCreate) -> str:
     # Build adventure types list for the prompt
     adventure_types_str = ", ".join(questionnaire.type) if questionnaire.type else "exploration"
     
-    # Construct the prompt
-    prompt = f"""Generate a 2-3 sentence explorer identity summary based on the user's questionnaire answers:
+    # Construct the prompt using ChatML format with few-shot examples
+    prompt = f"""<|system|>
+You are the TrailSaga AI Guide. Your task is to generate a personalized welcome message for a new user based on their profile.
+The message must be around 80-100 words.
+Do not invent characters (like "FiNT"). Do not describe physical appearance.
+Focus on their fitness level, preferred adventure types, and narrative style.
+</s>
+<|user|>
+Fitness: Beginner
+Type: family-fun
+Narrative: playful
+</s>
+<|assistant|>
+Welcome, Joyful Explorer! It is wonderful to have you here. Since you are just starting your journey and enjoy family-friendly fun, TrailSaga has prepared a delightful collection of easygoing and playful adventures just for you. Expect to find charming theme trails where learning and games go hand in hand. We will keep the pace relaxed so you can fully enjoy the smiles of your loved ones. Let's turn every small step into a happy memory!
+</s>
+<|user|>
+Fitness: Advanced
+Type: hiking, natural-scenery
+Narrative: mystery
+</s>
+<|assistant|>
+Greetings, Seeker of the Unknown! Your impressive fitness level tells us you are ready to conquer steep paths and deep forests. Because you are drawn to natural scenery and mystery, we have curated routes that lead not just to breathtaking views, but to ancient secrets hidden in the landscape. Prepare for challenging hikes where every turn might reveal a forgotten legend or a hidden ruin. The wild is calling, and it has a puzzle waiting for you to solve.
+</s>
+<|user|>
+Fitness: {questionnaire.fitness}
+Type: {adventure_types_str}
+Narrative: {questionnaire.narrative}
+</s>
+<|assistant|>"""
 
-Fitness Level: {questionnaire.fitness}
-Preferred Adventure Types: {adventure_types_str}
-Narrative Style: {questionnaire.narrative}
-
-Requirements:
-1. Give the user a cool "explorer title" (e.g., "City Explorer", "Mountain Challenger")
-2. Briefly describe their characteristics and suitable adventure types
-3. Use an inspiring and immersive tone
-4. Output in English, 2-3 sentences total
-
-Explorer Summary:"""
 
     # Call Ollama API with TinyLlama
     try:
@@ -68,8 +84,8 @@ Explorer Summary:"""
                     "prompt": prompt,
                     "stream": False,
                     "options": {
-                        "temperature": 0.8,
-                        "top_p": 0.9,
+                        "temperature": 0.6,
+                        "top_p": 1.1,
                         "num_predict": 150,  # max tokens
                     },
                 },
@@ -130,29 +146,38 @@ async def generate_route_story(
     
     # Map narrative style to English descriptions
     style_mapping = {
-        "adventure": "epic adventure style emphasizing heroic journeys and challenges",
-        "mystery": "mysterious suspense style emphasizing unsolved mysteries and hidden clues",
-        "playful": "lighthearted and humorous style suitable for family and leisure",
+        "adventure": "epic and heroic",
+        "mystery": "mysterious and suspenseful",
+        "playful": "lighthearted and fun",
     }
     style_desc = style_mapping.get(narrative_style, style_mapping["adventure"])
     
-    prompt = f"""Create a short prologue story for the following outdoor route:
+    # Construct prompt for route story generation
+    prompt = f"""<|system|>
+You are the TrailSaga Story Generator. Create an engaging prologue for an outdoor route.
+Format: First line = Title (max 10 words), then 2-3 short paragraphs (100-150 words total).
+Create atmosphere. Be {style_desc}.
+</s>
+<|user|>
+Route: Black Forest Trail
+Location: Germany
+Distance: 8.5 km
+Difficulty: 2/6
+</s>
+<|assistant|>
+Title: Secrets of the Ancient Pines
 
-Route Name: {route_title}
+The morning mist clings to the towering trees of the Black Forest. Local legends speak of travelers who walked these paths centuries ago, searching for something hidden in the shadows. Today, you stand at the threshold of your own mystery.
+
+As you step onto the trail, the forest seems to watch and wait. Every twisted root and moss-covered stone holds a story. What secrets will you uncover in the emerald depths?
+</s>
+<|user|>
+Route: {route_title}
 Location: {route_location}
 Distance: {route_length_km} km
 Difficulty: {route_difficulty}/6
-Style: {style_desc}
-
-Requirements:
-1. First provide an engaging story title (within 10 words)
-2. Then write a 2-3 paragraph opening story (100-150 words total)
-3. Create atmosphere and make users feel like they're "embarking on a quest"
-4. Output in English
-
-Format:
-Title: [your title]
-Body: [your story]"""
+</s>
+<|assistant|>"""
 
     try:
         async with httpx.AsyncClient(timeout=settings.tinyllama_timeout) as client:
@@ -229,20 +254,27 @@ async def generate_post_run_summary(
     
     quest_completion_rate = (quests_completed / total_quests * 100) if total_quests > 0 else 0
     
-    prompt = f"""Generate a personalized summary and next challenge suggestion for a completed outdoor route:
-
-Completed Route: {route_title}
+    # Construct prompt for post-run summary
+    prompt = f"""<|system|>
+You are the TrailSaga Achievement Generator. Create a motivating summary for a completed route.
+Format: 3-5 sentences. Be encouraging and suggest next steps.
+</s>
+<|user|>
+Route: Mountain Vista Trail
+Distance: 12.5 km
+Quests: 3/4 (75%)
+Level: 5
+</s>
+<|assistant|>
+Congratulations on conquering the Mountain Vista Trail! You pushed through 12.5 kilometers of challenging terrain and completed most of your quests. Your determination is truly impressive. You're ready for even greater challenges now. Why not try a route with more elevation gain next time?
+</s>
+<|user|>
+Route: {route_title}
 Distance: {route_length_km} km
-Quests Completed: {quests_completed}/{total_quests} ({quest_completion_rate:.0f}%)
-Current Level: {user_level}
-
-Requirements:
-1. Summarize the adventure highlights in 3-5 sentences
-2. Provide next challenge suggestions (e.g., "Try a slightly longer route next time")
-3. Use an encouraging and motivating tone
-4. Output in English
-
-Summary:"""
+Quests: {quests_completed}/{total_quests} ({quest_completion_rate:.0f}%)
+Level: {user_level}
+</s>
+<|assistant|>"""
 
     try:
         async with httpx.AsyncClient(timeout=settings.tinyllama_timeout) as client:
