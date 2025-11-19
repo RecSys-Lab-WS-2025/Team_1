@@ -55,6 +55,8 @@ class Route(Base):
     difficulty: Mapped[int | None] = mapped_column(Integer, nullable=True)
     short_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     tags_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    elevation: Mapped[int | None] = mapped_column(Integer, nullable=True)
     gpx_data_raw: Mapped[str | None] = mapped_column(Text, nullable=True)
     xp_required: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
     story_prologue_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
