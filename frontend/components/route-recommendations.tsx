@@ -21,6 +21,7 @@ import {
   Lock,
   Sparkles,
   User,
+  Bike,
 } from "lucide-react";
 import { RouteDetailModal } from "@/components/route-detail-modal";
 import { HikingSimulator } from "@/components/hiking-simulator";
@@ -56,7 +57,7 @@ export function RouteRecommendations({
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [activeRoute, setActiveRoute] = useState<Route | null>(null);
   const [selectedType, setSelectedType] = useState<
-    "all" | "hiking" | "city-walk" | "trail-running"
+    "all" | "running" | "hiking" | "cycling"
   >("all");
   const [feedbackRoute, setFeedbackRoute] = useState<Route | null>(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -71,15 +72,18 @@ export function RouteRecommendations({
     if (!isLoggedIn) {
       fetchBackendRoutes();
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, selectedType]);
 
   const fetchBackendRoutes = async () => {
     setIsLoadingRoutes(true);
     setBackendError(null);
 
     try {
+      // Build API URL with optional category parameter
+      const categoryParam =
+        selectedType !== "all" ? `&category=${selectedType}` : "";
       const response = await apiClient.get<ApiRecommendationResponse>(
-        "api/routes/recommendations?limit=20"
+        `api/routes/recommendations?limit=20${categoryParam}`
       );
       const routes = transformApiRoutes(response.routes);
       setBackendRoutes(routes);
@@ -348,17 +352,17 @@ export function RouteRecommendations({
               <Sparkles className="w-4 h-4 mr-2" />
               All
             </TabsTrigger>
+            <TabsTrigger value="running" className="py-3">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Running
+            </TabsTrigger>
             <TabsTrigger value="hiking" className="py-3">
               <Mountain className="w-4 h-4 mr-2" />
               Hiking
             </TabsTrigger>
-            <TabsTrigger value="city-walk" className="py-3">
-              <MapPin className="w-4 h-4 mr-2" />
-              City Walk
-            </TabsTrigger>
-            <TabsTrigger value="trail-running" className="py-3">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Trail Run
+            <TabsTrigger value="cycling" className="py-3">
+              <Bike className="w-4 h-4 mr-2" />
+              Cycling
             </TabsTrigger>
           </TabsList>
         </Tabs>

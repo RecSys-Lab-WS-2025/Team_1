@@ -112,15 +112,23 @@ export function mapApiDifficulty(
 
 /**
  * Helper function to map API category_name to frontend route type
+ * Maps backend category_name values to frontend categories based on CATEGORY_MAPPING
  */
 export function mapApiCategory(
   categoryName: string | null
-): "hiking" | "city-walk" | "trail-running" {
+): "hiking" | "running" | "cycling" {
   if (!categoryName) return "hiking";
 
   const lower = categoryName.toLowerCase();
+  
+  // Running: "Jogging", "Trail running"
   if (lower.includes("run") || lower.includes("jogging"))
-    return "trail-running";
-  if (lower.includes("cycling")) return "trail-running"; // Map cycling to trail-running for now
+    return "running";
+  
+  // Cycling: "Cycling", "Mountainbiking", "Long distance cycling"
+  if (lower.includes("cycling") || lower.includes("mountain") || lower.includes("bike"))
+    return "cycling";
+  
+  // Hiking: "Theme trail", "Hiking trail", and everything else
   return "hiking";
 }

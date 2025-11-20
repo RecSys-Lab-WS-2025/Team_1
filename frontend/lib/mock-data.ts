@@ -8,7 +8,7 @@
 export interface Route {
   id: string;
   name: string;
-  type: "hiking" | "city-walk" | "trail-running";
+  type: "hiking" | "running" | "cycling";
   difficulty: "easy" | "medium" | "hard" | "expert";
   distance: number; // in km
   elevation: number; // in meters
@@ -54,7 +54,7 @@ export interface UserProfile {
   xpToNextLevel: number;
   explorerType: string;
   fitnessLevel: "beginner" | "intermediate" | "advanced" | "expert";
-  preferredTypes: string[];
+  preferredTypes: ("hiking" | "running" | "cycling")[];
   narrativeStyle: string;
   completedRoutes: string[];
   achievements: Achievement[];
@@ -149,7 +149,7 @@ export const mockRoutes: Route[] = [
   {
     id: "2",
     name: "Munich City Explorer",
-    type: "city-walk",
+    type: "hiking",
     difficulty: "easy",
     distance: 5.2,
     elevation: 45,
@@ -251,7 +251,7 @@ export const mockRoutes: Route[] = [
   {
     id: "4",
     name: "Rhine River Run",
-    type: "trail-running",
+    type: "running",
     difficulty: "medium",
     distance: 10.3,
     elevation: 180,
@@ -288,7 +288,7 @@ export const mockRoutes: Route[] = [
   {
     id: "5",
     name: "Berlin Wall Heritage Walk",
-    type: "city-walk",
+    type: "hiking",
     difficulty: "easy",
     distance: 6.5,
     elevation: 25,
