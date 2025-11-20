@@ -43,25 +43,25 @@ export function UserProfileModal({ userProfile, onClose }: UserProfileModalProps
       unlocked: completedRoutes.length >= 3
     },
     {
-      id: 'city-walker',
-      name: 'City Walker',
-      description: 'Complete a city walk route',
-      icon: '🏛️',
-      unlocked: completedRoutes.some(r => r.type === 'city-walk')
-    },
-    {
-      id: 'mountain-climber',
-      name: 'Mountain Climber',
+      id: 'hiker',
+      name: 'Trail Hiker',
       description: 'Complete a hiking route',
       icon: '⛰️',
       unlocked: completedRoutes.some(r => r.type === 'hiking')
     },
     {
-      id: 'speedster',
-      name: 'Speedster',
-      description: 'Complete a trail running route',
+      id: 'runner',
+      name: 'Trail Runner',
+      description: 'Complete a running route',
       icon: '🏃',
-      unlocked: completedRoutes.some(r => r.type === 'trail-running')
+      unlocked: completedRoutes.some(r => r.type === 'running')
+    },
+    {
+      id: 'cyclist',
+      name: 'Cyclist',
+      description: 'Complete a cycling route',
+      icon: '🚴',
+      unlocked: completedRoutes.some(r => r.type === 'cycling')
     },
     {
       id: 'level-5',
@@ -93,7 +93,7 @@ export function UserProfileModal({ userProfile, onClose }: UserProfileModalProps
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="max-w-4xl w-full my-8 border-4 border-border shadow-2xl">
         {/* Header */}
-        <div className="relative p-8 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 border-b-4 border-border">
+        <div className="relative p-8 bg-linear-to-r from-primary/20 via-secondary/20 to-accent/20 border-b-4 border-border">
           <Button
             variant="secondary"
             size="icon"
@@ -210,7 +210,7 @@ export function UserProfileModal({ userProfile, onClose }: UserProfileModalProps
               <Card className="p-6 border-2 border-border">
                 <h3 className="text-lg font-bold text-foreground mb-4">Activity Breakdown</h3>
                 <div className="space-y-3">
-                  {['hiking', 'city-walk', 'trail-running'].map(type => {
+                  {['running', 'hiking', 'cycling'].map(type => {
                     const count = completedRoutes.filter(r => r.type === type).length;
                     const percentage = completedRoutes.length > 0 
                       ? (count / completedRoutes.length) * 100 
@@ -220,7 +220,7 @@ export function UserProfileModal({ userProfile, onClose }: UserProfileModalProps
                       <div key={type}>
                         <div className="flex justify-between mb-2">
                           <span className="text-sm font-semibold text-foreground capitalize">
-                            {type.replace('-', ' ')}
+                            {type}
                           </span>
                           <span className="text-sm text-muted-foreground">{count} routes</span>
                         </div>
@@ -249,7 +249,7 @@ export function UserProfileModal({ userProfile, onClose }: UserProfileModalProps
                           <h4 className="font-bold text-foreground">{achievement.name}</h4>
                           <p className="text-sm text-muted-foreground">{achievement.description}</p>
                         </div>
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                             <span className="text-primary-foreground text-sm">✓</span>
                           </div>
