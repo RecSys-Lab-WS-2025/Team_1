@@ -11,6 +11,18 @@ import {
 import { Route, Breakpoint, MiniQuest } from "./mock-data";
 
 /**
+ * Pool of available route images for random assignment
+ */
+const ROUTE_IMAGES = [
+  "/black-forest-hiking-trail-misty-morning.jpg",
+  "/bavarian-alps-mountain-summit-sunrise.jpg",
+  "/berlin-wall-memorial-east-side-gallery.jpg",
+  "/munich-city-center-marienplatz.jpg",
+  "/rhine-river-valley-vineyards-castle.jpg",
+  "/saxon-switzerland-bastei-bridge-rock-formation.jpg",
+];
+
+/**
  * Transform API breakpoint to frontend breakpoint
  */
 function transformBreakpoint(apiBreakpoint: ApiBreakpoint): Breakpoint {
@@ -70,7 +82,7 @@ export function transformApiRoute(apiRoute: ApiRoute): Route {
     duration: apiRoute.duration_min || 0,
     location: apiRoute.location || "Unknown location",
     description: apiRoute.short_description || "No description available",
-    imageUrl: "/placeholder.jpg", // Default image, could be enhanced with actual images
+    imageUrl: ROUTE_IMAGES[apiRoute.id % ROUTE_IMAGES.length],
     xpReward: apiRoute.base_xp_reward, // ⭐ Base XP reward from backend
     rating: 4.5, // Could be enhanced with actual rating data from backend
     completions: 100, // Could be enhanced with actual completion count from backend

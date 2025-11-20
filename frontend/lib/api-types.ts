@@ -99,13 +99,14 @@ export interface XpBreakdown {
 
 /**
  * Helper function to map API difficulty (0-3) to frontend difficulty labels
+ * 0 -> easy, 1 -> moderate, 2 -> difficult, 3 -> expert
  */
 export function mapApiDifficulty(
   difficulty: number | null
 ): "easy" | "medium" | "hard" | "expert" {
   if (difficulty === null || difficulty === 0) return "easy";
-  if (difficulty === 1) return "medium";
-  if (difficulty === 2) return "hard";
+  if (difficulty === 1) return "medium"; // "moderate" displayed as "medium" in UI
+  if (difficulty === 2) return "hard"; // "difficult" displayed as "hard" in UI
   return "expert";
 }
 
