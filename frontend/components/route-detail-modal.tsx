@@ -54,6 +54,13 @@ export function RouteDetailModal({
           >
             <X className="w-5 h-5" />
           </Button>
+
+          {/* XP Reward Badge */}
+          <div className="absolute bottom-4 left-4 bg-accent/90 backdrop-blur-sm text-accent-foreground px-4 py-2 rounded-full flex items-center gap-2 font-semibold shadow-lg">
+            <Sparkles className="w-5 h-5" />
+            <span>{route.xpReward} XP</span>
+          </div>
+
           {isLocked && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <div className="text-center text-white">
@@ -95,7 +102,10 @@ export function RouteDetailModal({
           </div>
 
           {/* Description */}
-          <p className="text-foreground leading-relaxed">{route.description}</p>
+          <div
+            className="text-foreground leading-relaxed line-clamp-9"
+            dangerouslySetInnerHTML={{ __html: route.description }}
+          />
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg border-2 border-border">
@@ -120,15 +130,6 @@ export function RouteDetailModal({
                 {Math.round(route.duration / 60)}h {route.duration % 60}m
               </p>
             </div>
-          </div>
-
-          {/* XP Reward */}
-          <div className="flex items-center gap-2 text-sm">
-            <Sparkles className="w-5 h-5 text-accent" />
-            <span className="font-semibold text-foreground">
-              {route.xpReward} XP
-            </span>
-            <span className="text-muted-foreground">reward</span>
           </div>
 
           {/* Breakpoints Preview */}
