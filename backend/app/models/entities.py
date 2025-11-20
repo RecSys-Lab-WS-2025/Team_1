@@ -59,6 +59,7 @@ class Route(Base):
     elevation: Mapped[int | None] = mapped_column(Integer, nullable=True)
     gpx_data_raw: Mapped[str | None] = mapped_column(Text, nullable=True)
     xp_required: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    base_xp_reward: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
     story_prologue_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     story_prologue_body: Mapped[str | None] = mapped_column(Text, nullable=True)
     story_epilogue_body: Mapped[str | None] = mapped_column(Text, nullable=True)

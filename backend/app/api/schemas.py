@@ -39,7 +39,10 @@ class RouteResponse(BaseModel):
     duration_min: Optional[int] = None
     difficulty: Optional[int] = None
     short_description: Optional[str] = None
+    location: Optional[str] = None
+    elevation: Optional[int] = None
     xp_required: int
+    base_xp_reward: int
     story_prologue_title: Optional[str] = None
     story_prologue_body: Optional[str] = None
     story_epilogue_body: Optional[str] = None
