@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.entities import Route, DemoProfile
+from app.models.entities import Route, DemoProfile, Breakpoint
 
 
 # Category mapping: custom category → route.category_name values
@@ -251,7 +251,9 @@ async def get_recommended_routes(
         List of recommended routes, sorted by relevance (if personalized) or random
     """
     # Build base query with eager loading of relationships
-    query = select(Route).options(selectinload(Route.breakpoints))
+    query = select(Route).options(
+        selectinload(Route.breakpoints).selectinload(Breakpoint.mini_quests)
+    )
     
     # Apply category filter if specified
     if category and category in CATEGORY_MAPPING:
