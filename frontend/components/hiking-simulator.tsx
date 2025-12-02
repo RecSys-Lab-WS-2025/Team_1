@@ -77,7 +77,7 @@ export function HikingSimulator({
     
     if (route.prologue) {
       setShowPrologueModal(true);
-      logger.logUserAction('显示序章', { routeId: route.id }, 'HikingSimulator');
+      logger.logUserAction('Show prologue', { routeId: route.id }, 'HikingSimulator');
     }
     
     return () => {
@@ -122,7 +122,7 @@ export function HikingSimulator({
 
   const handleNextBreakpoint = () => {
     if (!isLastBreakpoint) {
-      logger.logUserAction('移动到下一个断点', { 
+      logger.logUserAction('Move to next breakpoint', { 
         currentIndex: safeIndex, 
         nextIndex: safeIndex + 1,
         routeId: route.id 
@@ -138,7 +138,7 @@ export function HikingSimulator({
         const nextBreakpoint = route.breakpoints[nextIndex];
         if (nextBreakpoint?.content) {
           setShowChapterModal(true);
-          logger.logUserAction('显示章节内容', { breakpointIndex: nextIndex, routeId: route.id }, 'HikingSimulator');
+          logger.logUserAction('Show chapter content', { breakpointIndex: nextIndex, routeId: route.id }, 'HikingSimulator');
         }
       }, 800);
     }
@@ -169,7 +169,7 @@ export function HikingSimulator({
   };
 
   const handleQuestComplete = (quest: MiniQuest) => {
-    logger.logUserAction('完成任务', { 
+    logger.logUserAction('Complete quest', { 
       questId: quest.id, 
       xpReward: quest.xpReward,
       routeId: route.id,
@@ -191,7 +191,7 @@ export function HikingSimulator({
       setTimeout(() => {
         if (route.epilogue) {
           setShowEpilogueModal(true);
-          logger.logUserAction('显示尾声', { routeId: route.id }, 'HikingSimulator');
+          logger.logUserAction('Show epilogue', { routeId: route.id }, 'HikingSimulator');
         } else {
           handleRouteCompletion();
         }
@@ -211,7 +211,7 @@ export function HikingSimulator({
     
     const totalXp = Math.round((baseXp + questBonus) * difficultyMultiplier);
     
-    logger.logBusinessLogic('完成路线', 'Route', route.id, {
+    logger.logBusinessLogic('Complete route', 'Route', route.id, {
       baseXp,
       questBonus,
       difficultyMultiplier,
@@ -226,7 +226,7 @@ export function HikingSimulator({
   const handleSaveCompletion = async () => {
     if (!isRouteCompleted) {
       const startTime = performance.now();
-      logger.logUserAction('保存路线完成', { 
+      logger.logUserAction('Save route completion', { 
         routeId: route.id, 
         totalXp: totalXpGained,
         completedQuests: completedQuests.length
@@ -245,11 +245,11 @@ export function HikingSimulator({
         }
         
         const duration = performance.now() - startTime;
-        logger.logPerformance('保存路线完成', duration, 'HikingSimulator', { routeId: route.id });
-        logger.logBusinessLogic('路线完成已保存', 'Route', route.id, { totalXp: totalXpGained }, 'HikingSimulator');
+        logger.logPerformance('Save route completion', duration, 'HikingSimulator', { routeId: route.id });
+        logger.logBusinessLogic('Route completion saved', 'Route', route.id, { totalXp: totalXpGained }, 'HikingSimulator');
       } catch (error) {
         console.error('[HikingSimulator] Failed to save completion:', error);
-        logger.logBusinessLogic('路线完成保存失败', 'Route', route.id, { error: String(error) }, 'HikingSimulator');
+        logger.logBusinessLogic('Route completion save failed', 'Route', route.id, { error: String(error) }, 'HikingSimulator');
         // Swallow error so UI can still close
       }
     }

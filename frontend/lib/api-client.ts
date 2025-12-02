@@ -21,7 +21,7 @@ class ApiClient {
 
   constructor() {
     this.baseURL = API_BASE_URL;
-    logger.info('API Client 初始化', { baseURL: this.baseURL }, 'ApiClient', 'INIT');
+    logger.info('API Client initialized', { baseURL: this.baseURL }, 'ApiClient', 'INIT');
   }
 
   /**

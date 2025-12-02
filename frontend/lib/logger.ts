@@ -1,22 +1,22 @@
 /**
- * 统一日志工具模块
+ * Unified logging utility module.
  * 
- * 为前端应用提供结构化的日志系统，支持：
- * - 不同日志级别（DEBUG, INFO, WARN, ERROR）
- * - 开发/生产环境自动切换
- * - 日志分组和格式化
- * - 性能监控
- * - 请求追踪
- * - localStorage 持久化（ERROR 和 WARN）
- * - 自动发送到后端（ERROR 和 WARN）
+ * Provides a structured logging system for the frontend application with:
+ * - Multiple log levels (DEBUG, INFO, WARN, ERROR)
+ * - Automatic dev/production behavior switching
+ * - Log grouping and formatting
+ * - Performance monitoring
+ * - Request tracing
+ * - localStorage persistence (ERROR and WARN)
+ * - Automatic sending to backend (ERROR and WARN)
  * 
- * 使用方式：
+ * Usage:
  *   import { logger } from '@/lib/logger';
  *   
- *   logger.debug('调试信息');
- *   logger.info('一般信息');
- *   logger.warn('警告信息');
- *   logger.error('错误信息', error);
+ *   logger.debug('Debug information');
+ *   logger.info('General information');
+ *   logger.warn('Warning information');
+ *   logger.error('Error information', error);
  */
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -38,9 +38,9 @@ class Logger {
   private logHistory: LogEntry[] = [];
   private maxHistorySize: number = 100;
   private localStorageKey = 'trailsaga-frontend-logs';
-  private maxLocalStorageSize: number = 500; // 最多保存 500 条错误/警告日志
-  private pendingLogs: LogEntry[] = []; // 待发送到后端的日志
-  private sendLogsInterval: number = 30000; // 30 秒发送一次
+  private maxLocalStorageSize: number = 500; // Maximum 500 error/warn logs in localStorage
+  private pendingLogs: LogEntry[] = []; // Logs waiting to be sent to backend
+  private sendLogsInterval: number = 30000; // Send every 30 seconds
   private sendLogsTimer: NodeJS.Timeout | null = null;
   private apiBaseUrl: string;
 
@@ -50,7 +50,7 @@ class Logger {
     this.loadFromLocalStorage();
     this.startAutoSend();
     
-    // 监听页面卸载，发送待发送的日志
+    // On page unload, try to send any pending logs
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', () => {
         this.flushPendingLogs();
@@ -59,7 +59,7 @@ class Logger {
   }
 
   /**
-   * 格式化日志消息
+   * Format log message
    */
   private formatMessage(
     level: LogLevel,
@@ -76,7 +76,7 @@ class Logger {
   }
 
   /**
-   * 获取日志级别的 emoji
+   * Get emoji for log level
    */
   private getEmoji(level: LogLevel): string {
     switch (level) {
@@ -94,7 +94,7 @@ class Logger {
   }
 
   /**
-   * 记录日志到历史记录
+   * Add log entry to in-memory history
    */
   private addToHistory(entry: LogEntry): void {
     this.logHistory.push(entry);
@@ -102,7 +102,7 @@ class Logger {
       this.logHistory.shift();
     }
 
-    // 对于 ERROR 和 WARN，持久化到 localStorage 并准备发送到后端
+    // For ERROR and WARN, persist to localStorage and queue for backend sending
     if (entry.level === 'error' || entry.level === 'warn') {
       this.persistToLocalStorage(entry);
       this.addToPendingLogs(entry);
@@ -110,7 +110,7 @@ class Logger {
   }
 
   /**
-   * 持久化日志到 localStorage
+   * Persist a log entry to localStorage
    */
   private persistToLocalStorage(entry: LogEntry): void {
     if (typeof window === 'undefined') return;
@@ -119,7 +119,7 @@ class Logger {
       const stored = localStorage.getItem(this.localStorageKey);
       let logs: LogEntry[] = stored ? JSON.parse(stored) : [];
       
-      // 添加用户代理和 URL 信息
+      // Enrich with user agent and URL information
       const enrichedEntry: LogEntry = {
         ...entry,
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
@@ -129,20 +129,20 @@ class Logger {
       
       logs.push(enrichedEntry);
       
-      // 限制日志数量
+      // Limit the number of stored logs
       if (logs.length > this.maxLocalStorageSize) {
         logs = logs.slice(-this.maxLocalStorageSize);
       }
       
       localStorage.setItem(this.localStorageKey, JSON.stringify(logs));
     } catch (error) {
-      // localStorage 可能已满或不可用，静默失败
+      // localStorage may be full or unavailable; fail silently
       console.warn('Failed to persist log to localStorage:', error);
     }
   }
 
   /**
-   * 从 localStorage 加载日志
+   * Load logs from localStorage into memory
    */
   private loadFromLocalStorage(): void {
     if (typeof window === 'undefined') return;
@@ -151,7 +151,7 @@ class Logger {
       const stored = localStorage.getItem(this.localStorageKey);
       if (stored) {
         const logs: LogEntry[] = JSON.parse(stored);
-        // 只加载最近的日志到内存
+        // Only keep the most recent logs in memory
         this.logHistory = logs.slice(-this.maxHistorySize);
       }
     } catch (error) {
@@ -160,19 +160,19 @@ class Logger {
   }
 
   /**
-   * 添加到待发送队列
+   * Add entry to pending-send queue
    */
   private addToPendingLogs(entry: LogEntry): void {
     this.pendingLogs.push(entry);
     
-    // 如果待发送日志太多，立即发送
+    // If too many pending logs, flush immediately
     if (this.pendingLogs.length >= 10) {
       this.flushPendingLogs();
     }
   }
-
+  
   /**
-   * 启动自动发送定时器
+   * Start periodic auto-send timer
    */
   private startAutoSend(): void {
     if (typeof window === 'undefined') return;
@@ -183,7 +183,7 @@ class Logger {
   }
 
   /**
-   * 发送待发送的日志到后端
+   * Send pending logs to backend
    */
   private async flushPendingLogs(): Promise<void> {
     if (this.pendingLogs.length === 0) return;
@@ -202,19 +202,19 @@ class Logger {
           timestamp: new Date().toISOString(),
         }),
       });
-
+  
       if (!response.ok) {
-        // 如果发送失败，重新加入队列（但限制数量）
+        // If sending fails, re-queue logs (with size limit)
         this.pendingLogs = [...logsToSend, ...this.pendingLogs].slice(0, 100);
       }
     } catch (error) {
-      // 网络错误，重新加入队列（但限制数量）
+      // Network error: re-queue logs (with size limit)
       this.pendingLogs = [...logsToSend, ...this.pendingLogs].slice(0, 100);
     }
   }
-
+  
   /**
-   * 输出日志
+   * Core log output method
    */
   private log(
     level: LogLevel,
@@ -234,13 +234,13 @@ class Logger {
     };
 
     this.addToHistory(entry);
-
-    // 在生产环境只输出 ERROR 和 WARN
+    
+    // In production, only output ERROR and WARN to console
     if (!this.isDevelopment && level !== 'error' && level !== 'warn') {
       return;
     }
-
-    // 使用 console 方法输出
+    
+    // Use console methods for actual output
     switch (level) {
       case 'debug':
         if (this.isDevelopment) {
@@ -260,35 +260,35 @@ class Logger {
   }
 
   /**
-   * 调试日志
+   * Debug log
    */
   debug(message: string, data?: unknown, component?: string, action?: string): void {
     this.log('debug', message, data, component, action);
   }
 
   /**
-   * 信息日志
+   * Info log
    */
   info(message: string, data?: unknown, component?: string, action?: string): void {
     this.log('info', message, data, component, action);
   }
 
   /**
-   * 警告日志
+   * Warning log
    */
   warn(message: string, data?: unknown, component?: string, action?: string): void {
     this.log('warn', message, data, component, action);
   }
 
   /**
-   * 错误日志
+   * Error log
    */
   error(message: string, error?: unknown, component?: string, action?: string): void {
     this.log('error', message, error, component, action);
   }
 
   /**
-   * 记录 API 请求
+   * Log API request
    */
   logApiRequest(
     method: string,
@@ -297,7 +297,7 @@ class Logger {
     component?: string
   ): void {
     this.info(
-      `API 请求: ${method} ${url}`,
+      `API request: ${method} ${url}`,
       data,
       component,
       'API_REQUEST'
@@ -305,7 +305,7 @@ class Logger {
   }
 
   /**
-   * 记录 API 响应
+   * Log API response
    */
   logApiResponse(
     method: string,
@@ -317,15 +317,15 @@ class Logger {
   ): void {
     const statusEmoji = status >= 200 && status < 300 ? '✅' : '❌';
     this.info(
-      `${statusEmoji} API 响应: ${method} ${url} | status=${status} | duration=${duration.toFixed(2)}ms`,
+      `${statusEmoji} API response: ${method} ${url} | status=${status} | duration=${duration.toFixed(2)}ms`,
       data,
       component,
       'API_RESPONSE'
     );
   }
-
+  
   /**
-   * 记录 API 错误
+   * Log API error
    */
   logApiError(
     method: string,
@@ -334,7 +334,7 @@ class Logger {
     component?: string
   ): void {
     this.error(
-      `API 错误: ${method} ${url}`,
+      `API error: ${method} ${url}`,
       error,
       component,
       'API_ERROR'
@@ -342,7 +342,7 @@ class Logger {
   }
 
   /**
-   * 记录组件生命周期
+   * Log component lifecycle
    */
   logComponentLifecycle(
     component: string,
@@ -352,15 +352,15 @@ class Logger {
     const action = lifecycle === 'mount' ? 'MOUNT' : 
                    lifecycle === 'unmount' ? 'UNMOUNT' : 'UPDATE';
     this.debug(
-      `组件 ${lifecycle}: ${component}`,
+      `Component ${lifecycle}: ${component}`,
       props,
       component,
       action
     );
   }
-
+  
   /**
-   * 记录业务逻辑操作
+   * Log business logic operations
    */
   logBusinessLogic(
     action: string,
@@ -374,9 +374,9 @@ class Logger {
       : `${action} ${entity}`;
     this.info(message, data, component, 'BUSINESS_LOGIC');
   }
-
+  
   /**
-   * 记录性能指标
+   * Log performance metrics
    */
   logPerformance(
     operation: string,
@@ -386,15 +386,15 @@ class Logger {
   ): void {
     const emoji = duration > 1000 ? '🐌' : duration > 500 ? '⏱️' : '⚡';
     this.debug(
-      `${emoji} 性能: ${operation} | duration=${duration.toFixed(2)}ms`,
+      `${emoji} Performance: ${operation} | duration=${duration.toFixed(2)}ms`,
       metadata,
       component,
       'PERFORMANCE'
     );
   }
-
+  
   /**
-   * 记录用户操作
+   * Log user actions
    */
   logUserAction(
     action: string,
@@ -402,15 +402,15 @@ class Logger {
     component?: string
   ): void {
     this.info(
-      `👤 用户操作: ${action}`,
+      `👤 User action: ${action}`,
       data,
       component,
       'USER_ACTION'
     );
   }
-
+  
   /**
-   * 分组日志（用于复杂操作）
+   * Group logs (for complex operations)
    */
   group(label: string, component?: string): void {
     if (this.isDevelopment) {
@@ -425,7 +425,7 @@ class Logger {
   }
 
   /**
-   * 获取日志历史
+   * Get log history
    */
   getHistory(level?: LogLevel, limit?: number): LogEntry[] {
     let filtered = this.logHistory;
@@ -442,21 +442,21 @@ class Logger {
   }
 
   /**
-   * 清空日志历史
+   * Clear in-memory log history
    */
   clearHistory(): void {
     this.logHistory = [];
   }
 
   /**
-   * 导出日志历史（用于调试）
+   * Export log history as JSON (for debugging)
    */
   exportHistory(): string {
     return JSON.stringify(this.logHistory, null, 2);
   }
 
   /**
-   * 从 localStorage 获取所有持久化的错误日志
+   * Get all persisted logs from localStorage
    */
   getPersistedLogs(level?: LogLevel): LogEntry[] {
     if (typeof window === 'undefined') return [];
@@ -477,7 +477,7 @@ class Logger {
   }
 
   /**
-   * 清空 localStorage 中的日志
+   * Clear logs stored in localStorage
    */
   clearPersistedLogs(): void {
     if (typeof window === 'undefined') return;
@@ -490,7 +490,7 @@ class Logger {
   }
 
   /**
-   * 导出持久化日志为 JSON 字符串
+   * Export persisted logs as JSON string
    */
   exportPersistedLogs(level?: LogLevel): string {
     const logs = this.getPersistedLogs(level);
@@ -498,7 +498,7 @@ class Logger {
   }
 
   /**
-   * 导出持久化日志为可下载的文件
+   * Export persisted logs as a downloadable file
    */
   downloadPersistedLogs(level?: LogLevel): void {
     if (typeof window === 'undefined') return;
@@ -517,7 +517,7 @@ class Logger {
   }
 
   /**
-   * 手动发送日志到后端
+   * Manually send pending logs to backend
    */
   async sendLogsToBackend(): Promise<boolean> {
     await this.flushPendingLogs();
@@ -525,9 +525,9 @@ class Logger {
   }
 }
 
-// 导出单例
+// Export singleton
 export const logger = new Logger();
 
-// 导出类型
+// Export types
 export type { LogLevel, LogEntry };
 

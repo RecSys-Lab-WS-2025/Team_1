@@ -94,7 +94,7 @@ export function RouteRecommendations({
     setIsLoadingRoutes(true);
     setBackendError(null);
 
-    logger.info('开始获取路线推荐', { isLoggedIn, selectedType, routeLimit, userProfileId: userProfile.id }, 'RouteRecommendations', 'FETCH_ROUTES');
+    logger.info('Start fetching route recommendations', { isLoggedIn, selectedType, routeLimit, userProfileId: userProfile.id }, 'RouteRecommendations', 'FETCH_ROUTES');
 
     try {
       // Build API URL with optional profile_id and category parameters
@@ -114,12 +114,12 @@ export function RouteRecommendations({
         url += `&category=${selectedType}`;
       }
 
-      logger.debug('获取路线推荐', { url }, 'RouteRecommendations', 'FETCH_ROUTES');
+      logger.debug('Fetching route recommendations', { url }, 'RouteRecommendations', 'FETCH_ROUTES');
       // Use longer timeout for route recommendations (30 seconds should be enough)
       const response = await apiClient.get<ApiRecommendationResponse>(url, undefined, 30000);
       
       const duration = performance.now() - startTime;
-      logger.info('路线推荐获取成功', { 
+      logger.info('Route recommendations fetched successfully', { 
         routesCount: response.routes.length, 
         isPersonalized: response.is_personalized,
         duration: duration.toFixed(2) + 'ms'
@@ -130,16 +130,16 @@ export function RouteRecommendations({
 
       // Log personalization status
       if (response.is_personalized) {
-        logger.logBusinessLogic('显示个性化推荐', 'Route', undefined, { count: routes.length }, 'RouteRecommendations');
+        logger.logBusinessLogic('Show personalized recommendations', 'Route', undefined, { count: routes.length }, 'RouteRecommendations');
       } else {
-        logger.logBusinessLogic('显示随机推荐', 'Route', undefined, { count: routes.length }, 'RouteRecommendations');
+        logger.logBusinessLogic('Show random recommendations', 'Route', undefined, { count: routes.length }, 'RouteRecommendations');
       }
       
-      logger.logPerformance('获取路线推荐', duration, 'RouteRecommendations', { routesCount: routes.length });
+      logger.logPerformance('Fetch route recommendations', duration, 'RouteRecommendations', { routesCount: routes.length });
     } catch (error: any) {
       const duration = performance.now() - startTime;
-      logger.error("获取路线推荐失败", error, 'RouteRecommendations', 'FETCH_ROUTES');
-      logger.debug("错误详情", {
+      logger.error("Failed to fetch route recommendations", error, 'RouteRecommendations', 'FETCH_ROUTES');
+      logger.debug("Error details", {
         message: error?.message,
         status: error?.status,
         name: error?.name,

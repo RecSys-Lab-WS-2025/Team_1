@@ -58,30 +58,30 @@ async def get_route_recommendations(
     start_time = time.time()
     
     logger.info("=" * 80)
-    logger.info(f"🗺️ 获取路线推荐: profile_id={profile_id}, category={category}, limit={limit}")
+    logger.info(f"🗺️ Fetching route recommendations: profile_id={profile_id}, category={category}, limit={limit}")
     
     # Validate profile_id if provided and fetch profile once
     profile = None
     if profile_id is not None:
-        logger.debug(f"🔍 验证用户档案: profile_id={profile_id}")
+        logger.debug(f"🔍 Validating user profile: profile_id={profile_id}")
         profile = await db.get(DemoProfile, profile_id)
         if not profile:
-            logger.warning(f"❌ 用户档案未找到: profile_id={profile_id}")
+            logger.warning(f"❌ User profile not found: profile_id={profile_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Profile with id {profile_id} not found"
             )
-        logger.debug(f"✅ 用户档案验证成功: profile_id={profile_id}")
+        logger.debug(f"✅ User profile validated successfully: profile_id={profile_id}")
     
     # Get recommended routes
-    logger.debug("🔄 开始计算推荐路线...")
+    logger.debug("🔄 Starting recommendation calculation...")
     routes = await get_recommended_routes(
         db=db,
         profile_id=profile_id,
         category=category,
         limit=limit
     )
-    logger.info(f"✅ 推荐路线计算完成: 返回 {len(routes)} 条路线")
+    logger.info(f"✅ Recommendation calculation completed: returned {len(routes)} routes")
     
     # Convert to response models
     route_responses = []
@@ -96,7 +96,7 @@ async def get_route_recommendations(
         # Add recommendation score if available (set by recommendation_service)
         if hasattr(route, 'recommendation_score'):
             route_dict["recommendation_score"] = route.recommendation_score
-            logger.debug(f"📊 路线 {route.id} 推荐分数: {route.recommendation_score:.4f}")
+            logger.debug(f"📊 Route {route.id} recommendation score: {route.recommendation_score:.4f}")
         if hasattr(route, 'recommendation_score_breakdown'):
             route_dict["recommendation_score_breakdown"] = route.recommendation_score_breakdown
         
@@ -117,7 +117,7 @@ async def get_route_recommendations(
         is_personalized=is_personalized
     )
     
-    logger.info(f"✅ 推荐路线返回成功: {len(route_responses)} 条路线, 个性化={is_personalized}, 耗时={duration_ms:.2f}ms")
+    logger.info(f"✅ Route recommendations returned successfully: {len(route_responses)} routes, personalized={is_personalized}, duration={duration_ms:.2f}ms")
     logger.info("=" * 80)
     
     return RecommendationResponse(
@@ -155,10 +155,10 @@ async def generate_route_story(
     start_time = time.time()
     
     logger.info("=" * 80)
-    logger.info(f"📖 生成路线故事: route_id={route_id}, narrative_style={request.narrative_style}, force_regenerate={request.force_regenerate}")
+    logger.info(f"📖 Generating route story: route_id={route_id}, narrative_style={request.narrative_style}, force_regenerate={request.force_regenerate}")
     
     # 1. Fetch route with breakpoints and mini_quests
-    logger.debug(f"🔍 查询路线信息: route_id={route_id}")
+    logger.debug(f"🔍 Fetching route information: route_id={route_id}")
     result = await db.execute(
         select(Route)
         .where(Route.id == route_id)
@@ -169,16 +169,16 @@ async def generate_route_story(
     route = result.scalar_one_or_none()
     
     if not route:
-        logger.error(f"❌ 路线未找到: route_id={route_id}")
+        logger.error(f"❌ Route not found: route_id={route_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Route with id {route_id} not found"
         )
     
-    logger.debug(f"✅ 路线查询成功: route_id={route_id}, breakpoints_count={len(route.breakpoints) if route.breakpoints else 0}")
+    logger.debug(f"✅ Route fetched successfully: route_id={route_id}, breakpoints_count={len(route.breakpoints) if route.breakpoints else 0}")
     
     if not route.breakpoints:
-        logger.error(f"❌ 路线没有断点: route_id={route_id}")
+        logger.error(f"❌ Route has no breakpoints: route_id={route_id}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Route has no breakpoints. Cannot generate story."
@@ -186,7 +186,7 @@ async def generate_route_story(
     
     # 2. Check if story already exists
     if route.story_prologue_body and not request.force_regenerate:
-        logger.info("📚 使用已存在的故事（跳过生成）")
+        logger.info("📚 Using existing story (skipping generation)")
         duration_ms = (time.time() - start_time) * 1000
         log_request(
             logger,
@@ -196,29 +196,29 @@ async def generate_route_story(
             duration_ms=duration_ms,
             cached=True
         )
-        logger.info(f"✅ 故事返回成功（缓存）: 耗时={duration_ms:.2f}ms")
+        logger.info(f"✅ Story returned from cache: duration={duration_ms:.2f}ms")
         logger.info("=" * 80)
         return _assemble_existing_story(route)
     
     # 3. Generate new story
-    logger.info("🤖 开始生成新故事...")
+    logger.info("🤖 Starting new story generation...")
     story_data = await generate_story_for_route(
         route=route,
         breakpoints=route.breakpoints,
         narrative_style=request.narrative_style
     )
-    logger.info("✅ 故事生成完成")
+    logger.info("✅ Story generation completed")
     
     # 4. Save to database
-    logger.debug("💾 保存故事到数据库...")
+    logger.debug("💾 Saving story to database...")
     await _save_story_to_db(route, story_data, db)
-    logger.info("✅ 故事已保存到数据库")
+    logger.info("✅ Story saved to database")
     
     duration_ms = (time.time() - start_time) * 1000
     log_business_logic(
         logger,
-        "生成",
-        "路线故事",
+        "generate",
+        "route story",
         entity_id=route_id,
         narrative_style=request.narrative_style,
         breakpoints_count=len(route.breakpoints)
@@ -233,7 +233,7 @@ async def generate_route_story(
         cached=False
     )
     
-    logger.info(f"✅ 故事生成并返回成功: 耗时={duration_ms:.2f}ms")
+    logger.info(f"✅ Story generated and returned successfully: duration={duration_ms:.2f}ms")
     logger.info("=" * 80)
     
     # 5. Return result

@@ -95,38 +95,38 @@ async def submit_questionnaire(
     start_time = time.time()
     
     logger.info("=" * 80)
-    logger.info("📝 收到用户问卷提交")
-    logger.debug(f"问卷数据: fitness={questionnaire.fitness}, type={questionnaire.type}, narrative={questionnaire.narrative}")
+    logger.info("📝 Received questionnaire submission")
+    logger.debug(f"Questionnaire data: fitness={questionnaire.fitness}, type={questionnaire.type}, narrative={questionnaire.narrative}")
     
     # 1. Translate questionnaire to user_vector
-    logger.debug("🔄 开始转换问卷为用户向量...")
+    logger.debug("🔄 Translating questionnaire into user vector...")
     user_vector = translate_questionnaire_to_vector(questionnaire)
-    logger.debug(f"✅ 用户向量生成完成: {user_vector}")
+    logger.debug(f"✅ User vector generated: {user_vector}")
     
     # 2. Generate welcome summary with GenAI (with fallback)
-    logger.debug("🤖 开始生成欢迎摘要...")
+    logger.debug("🤖 Generating welcome summary...")
     try:
         welcome_summary = await generate_welcome_summary(questionnaire)
-        logger.info("✅ GenAI 欢迎摘要生成成功")
+        logger.info("✅ GenAI welcome summary generated successfully")
     except HTTPException as e:
         # Log HTTP errors from Ollama (e.g., 503 Service Unavailable)
         logger.warning(
-            f"⚠️ GenAI 服务不可用 (status {e.status_code}), 使用备用方案: {e.detail}",
+            f"⚠️ GenAI service unavailable (status {e.status_code}), using fallback: {e.detail}",
             exc_info=True
         )
         welcome_summary = generate_fallback_welcome(questionnaire)
-        logger.info("✅ 使用备用欢迎摘要")
+        logger.info("✅ Fallback welcome summary used")
     except Exception as e:
         # Log other unexpected errors
         logger.warning(
-            f"⚠️ GenAI 生成失败, 使用备用方案: {type(e).__name__}: {str(e)}",
+            f"⚠️ GenAI generation failed, using fallback: {type(e).__name__}: {str(e)}",
             exc_info=True
         )
         welcome_summary = generate_fallback_welcome(questionnaire)
-        logger.info("✅ 使用备用欢迎摘要")
+        logger.info("✅ Fallback welcome summary used")
     
     # 3. Create database record
-    logger.debug("💾 开始创建用户档案...")
+    logger.debug("💾 Creating user profile record...")
     new_profile = DemoProfile(
         user_vector_json=json.dumps(user_vector, ensure_ascii=False),
         genai_welcome_summary=welcome_summary,
@@ -147,8 +147,8 @@ async def submit_questionnaire(
     
     log_business_logic(
         logger,
-        "创建",
-        "用户档案",
+        "create",
+        "user profile",
         entity_id=new_profile.id,
         fitness=questionnaire.fitness,
         narrative=questionnaire.narrative
@@ -164,7 +164,7 @@ async def submit_questionnaire(
         user_id=new_profile.id
     )
     
-    logger.info(f"✅ 用户档案创建成功: profile_id={new_profile.id}, 耗时={duration_ms:.2f}ms")
+    logger.info(f"✅ User profile created successfully: profile_id={new_profile.id}, duration={duration_ms:.2f}ms")
     logger.info("=" * 80)
     
     # 4. Return response
@@ -203,11 +203,11 @@ async def get_profile(
     import time
     start_time = time.time()
     
-    logger.debug(f"🔍 查询用户档案: profile_id={profile_id}")
+    logger.debug(f"🔍 Fetching user profile: profile_id={profile_id}")
     profile = await db.get(DemoProfile, profile_id)
     
     if profile is None:
-        logger.warning(f"❌ 用户档案未找到: profile_id={profile_id}")
+        logger.warning(f"❌ User profile not found: profile_id={profile_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Profile with id {profile_id} not found",
@@ -222,7 +222,7 @@ async def get_profile(
         duration_ms=duration_ms,
         user_id=profile_id
     )
-    logger.debug(f"✅ 用户档案查询成功: profile_id={profile_id}, 耗时={duration_ms:.2f}ms")
+    logger.debug(f"✅ User profile fetched successfully: profile_id={profile_id}, duration={duration_ms:.2f}ms")
     
     return ProfileResponse.model_validate(profile)
 

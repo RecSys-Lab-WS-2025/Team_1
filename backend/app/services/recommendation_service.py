@@ -466,7 +466,7 @@ async def get_recommended_routes(
     """
     start_time = time.time()
     
-    logger.debug(f"🔄 开始计算推荐路线: profile_id={profile_id}, category={category}, limit={limit}")
+    logger.debug(f"🔄 Starting route recommendation calculation: profile_id={profile_id}, category={category}, limit={limit}")
     
     # Build base query - limit initial load to avoid loading too much data
     # We'll load relationships only for the final selected routes
@@ -489,7 +489,7 @@ async def get_recommended_routes(
     
     # If no profile_id, return random routes
     if profile_id is None:
-        logger.debug(f"🎲 随机推荐模式: 从 {len(routes)} 条路线中选择 {limit} 条")
+        logger.debug(f"🎲 Random recommendation mode: selecting {limit} routes from {len(routes)} candidates")
         random.shuffle(routes)
         selected_routes = routes[:limit]
         # Now load relationships only for selected routes
@@ -501,33 +501,33 @@ async def get_recommended_routes(
         routes_with_relations = {r.id: r for r in result_with_relations.scalars().all()}
         final_routes = [routes_with_relations[r.id] for r in selected_routes if r.id in routes_with_relations]
         duration_ms = (time.time() - start_time) * 1000
-        logger.info(f"✅ 随机推荐完成: 返回 {len(final_routes)} 条路线, 耗时={duration_ms:.2f}ms")
+        logger.info(f"✅ Random recommendation completed: returned {len(final_routes)} routes, duration={duration_ms:.2f}ms")
         return final_routes
     
     # Get user profile and vector
-    logger.debug(f"🔍 获取用户档案和偏好向量: profile_id={profile_id}")
+    logger.debug(f"🔍 Fetching user profile and preference vector: profile_id={profile_id}")
     profile = await db.get(DemoProfile, profile_id)
     if not profile or not profile.user_vector_json:
-        logger.warning(f"⚠️ 用户档案或偏好向量不存在，使用随机推荐: profile_id={profile_id}")
+        logger.warning(f"⚠️ User profile or preference vector not found, falling back to random recommendations: profile_id={profile_id}")
         random.shuffle(routes)
         return routes[:limit]
     
     try:
         user_vector = json.loads(profile.user_vector_json)
-        logger.debug(f"✅ 用户偏好向量解析成功: {user_vector}")
+        logger.debug(f"✅ User preference vector parsed successfully: {user_vector}")
     except (json.JSONDecodeError, TypeError) as e:
-        logger.warning(f"⚠️ 用户偏好向量解析失败，使用随机推荐: {e}")
+        logger.warning(f"⚠️ Failed to parse user preference vector, falling back to random recommendations: {e}")
         random.shuffle(routes)
         return routes[:limit]
     
     # Fetch user feedback entries for feedback-aware recommendations
-    logger.debug(f"🔍 获取用户反馈记录: profile_id={profile_id}")
+    logger.debug(f"🔍 Fetching user feedback entries: profile_id={profile_id}")
     feedback_query = select(ProfileFeedback).where(
         ProfileFeedback.demo_profile_id == profile_id
     )
     feedback_result = await db.execute(feedback_query)
     feedback_entries = list(feedback_result.scalars().all())
-    logger.debug(f"📊 用户反馈记录数: {len(feedback_entries)}")
+    logger.debug(f"📊 Number of user feedback entries: {len(feedback_entries)}")
     
     # Build route vectors dictionary for feedback processing
     route_vectors = {}
@@ -536,19 +536,19 @@ async def get_recommended_routes(
     
     # Adjust user vector based on feedback (learn from user preferences)
     if feedback_entries:
-        logger.debug("🔄 根据用户反馈调整偏好向量...")
+        logger.debug("🔄 Adjusting preference vector based on user feedback...")
         adjusted_user_vector = adjust_user_vector_with_feedback(
             user_vector,
             feedback_entries,
             route_vectors
         )
-        logger.debug(f"✅ 偏好向量调整完成: {adjusted_user_vector}")
+        logger.debug(f"✅ Preference vector adjustment completed: {adjusted_user_vector}")
     else:
         adjusted_user_vector = user_vector
-        logger.debug("ℹ️ 无用户反馈，使用原始偏好向量")
+        logger.debug("ℹ️ No user feedback available, using original preference vector")
     
     # Calculate CBF scores for all routes with feedback-aware scoring
-    logger.debug(f"📊 开始计算 CBF 分数: 路线总数={len(routes)}")
+    logger.debug(f"📊 Starting CBF score calculation: total_routes={len(routes)}")
     route_scores = []
     for route in routes:
         route_vector = route_vectors[route.id]
@@ -583,7 +583,7 @@ async def get_recommended_routes(
     
     # Sort by score (descending) and return top N with scores
     route_scores.sort(key=lambda x: x[1], reverse=True)
-    logger.debug(f"📊 CBF 分数计算完成: 有效路线={len(route_scores)}")
+    logger.debug(f"📊 CBF score calculation completed: valid_routes={len(route_scores)}")
     
     # Log top scores for debugging
     if route_scores:
@@ -619,15 +619,15 @@ async def get_recommended_routes(
     duration_ms = (time.time() - start_time) * 1000
     log_business_logic(
         logger,
-        "计算",
-        "推荐路线",
+        "calculate",
+        "recommended routes",
         entity_id=profile_id,
         routes_count=len(final_routes),
         total_candidates=len(routes),
         feedback_count=len(feedback_entries)
     )
     
-    logger.info(f"✅ 个性化推荐完成: 返回 {len(final_routes)} 条路线, 耗时={duration_ms:.2f}ms")
+    logger.info(f"✅ Personalized recommendation completed: returned {len(final_routes)} routes, duration={duration_ms:.2f}ms")
     
     return final_routes
 

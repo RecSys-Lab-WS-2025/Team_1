@@ -77,8 +77,8 @@ async def call_ollama(
     settings = get_settings()
     start_time = time.time()
     
-    logger.debug(f"🤖 调用 Ollama API: model={settings.ollama_model}, max_tokens={max_tokens}, temperature={temperature}")
-    logger.debug(f"📝 Prompt 长度: {len(prompt)} 字符")
+    logger.debug(f"🤖 Calling Ollama API: model={settings.ollama_model}, max_tokens={max_tokens}, temperature={temperature}")
+    logger.debug(f"📝 Prompt length: {len(prompt)} characters")
     
     try:
         async with httpx.AsyncClient(timeout=settings.ollama_timeout) as client:
@@ -101,7 +101,12 @@ async def call_ollama(
             
             if "response" in result and result.get("done", False):
                 response_text = result["response"].strip()
-                logger.debug(f"✅ Ollama API 调用成功: 响应长度={len(response_text)} 字符, 耗时={duration_ms:.2f}ms")
+                logger.debug(f"✅ Ollama API call succeeded: response_length={len(response_text)} chars, duration={duration_ms:.2f}ms")
+            duration_ms = (time.time() - start_time) * 1000
+            
+            if "response" in result and result.get("done", False):
+                response_text = result["response"].strip()
+                logger.debug(f"✅ Ollama API call succeeded: response_length={len(response_text)} chars, duration={duration_ms:.2f}ms")
                 log_api_call(
                     logger,
                     "Ollama",
@@ -114,12 +119,12 @@ async def call_ollama(
                 )
                 return response_text
             
-            logger.error("❌ Ollama API 返回空响应")
+            logger.error("❌ Ollama API returned empty response")
             raise ValueError("Empty response from Ollama")
     
     except httpx.HTTPStatusError as e:
         duration_ms = (time.time() - start_time) * 1000
-        logger.error(f"❌ Ollama API HTTP 错误: status={e.response.status_code}, detail={e.response.text}")
+        logger.error(f"❌ Ollama API HTTP error: status={e.response.status_code}, detail={e.response.text}")
         log_api_call(
             logger,
             "Ollama",
@@ -135,7 +140,7 @@ async def call_ollama(
         )
     except httpx.TimeoutException as e:
         duration_ms = (time.time() - start_time) * 1000
-        logger.error(f"❌ Ollama API 超时: timeout={settings.ollama_timeout}s, 耗时={duration_ms:.2f}ms")
+        logger.error(f"❌ Ollama API timeout: timeout={settings.ollama_timeout}s, duration={duration_ms:.2f}ms")
         log_api_call(
             logger,
             "Ollama",
@@ -151,7 +156,7 @@ async def call_ollama(
         )
     except Exception as e:
         duration_ms = (time.time() - start_time) * 1000
-        logger.error(f"❌ Ollama API 调用失败: {type(e).__name__}: {str(e)}", exc_info=True)
+        logger.error(f"❌ Ollama API call failed: {type(e).__name__}: {str(e)}", exc_info=True)
         log_api_call(
             logger,
             "Ollama",

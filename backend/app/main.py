@@ -29,30 +29,30 @@ async def lifespan(app: FastAPI):
     # Initialize logging system
     init_logging_from_settings()
     logger = get_logger(__name__)
-    logger.info("🚀 应用启动中...")
+    logger.info("🚀 Application starting...")
     
     init_db(settings)
-    logger.info("✅ 数据库初始化完成")
+    logger.info("✅ Database initialization completed")
     
     # Seed achievements on startup
     try:
         from app.database import get_db_session
         from app.services.achievement_service import seed_achievements
-        logger.info("🌱 开始初始化成就数据...")
+        logger.info("🌱 Seeding achievement data...")
         async with await get_db_session() as session:
             await seed_achievements(session)
-        logger.info("✅ 成就数据初始化完成")
+        logger.info("✅ Achievement data seeding completed")
     except Exception as e:
         # Log but don't fail startup if seeding fails
-        logger.warning(f"⚠️ 成就数据初始化失败: {e}", exc_info=True)
+        logger.warning(f"⚠️ Achievement data seeding failed: {e}", exc_info=True)
     
-    logger.info("🎉 应用启动完成")
+    logger.info("🎉 Application startup completed")
     yield
     
     # Shutdown
-    logger.info("🛑 应用关闭中...")
+    logger.info("🛑 Application shutting down...")
     await close_db()
-    logger.info("✅ 数据库连接已关闭")
+    logger.info("✅ Database connections closed")
 
 
 def create_app() -> FastAPI:

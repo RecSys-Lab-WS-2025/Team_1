@@ -1,21 +1,21 @@
 """
-统一日志配置模块
+Centralized logging configuration module.
 
-为整个应用提供结构化的日志系统，支持：
-- 不同日志级别（DEBUG, INFO, WARNING, ERROR, CRITICAL）
-- 文件和控制台输出
-- 结构化日志格式
-- 请求追踪
-- 性能监控
+Provides a structured logging system for the entire application with:
+- Multiple log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- File and console outputs
+- Structured log formats
+- Request tracing
+- Performance monitoring
 
-使用方式：
+Usage:
     from app.logger import get_logger
     
     logger = get_logger(__name__)
-    logger.debug("调试信息")
-    logger.info("一般信息")
-    logger.warning("警告信息")
-    logger.error("错误信息", exc_info=True)
+    logger.debug("Debug message")
+    logger.info("Info message")
+    logger.warning("Warning message")
+    logger.error("Error message", exc_info=True)
 """
 import logging
 import sys
@@ -27,17 +27,17 @@ from datetime import datetime
 from app.settings import get_settings
 
 
-# 日志格式
+# Log formats
 DETAILED_FORMAT = (
     "%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d | %(message)s"
 )
 SIMPLE_FORMAT = "%(asctime)s | %(levelname)-8s | %(message)s"
 
-# 日志文件路径
+# Log directory
 LOG_DIR = Path(__file__).parent.parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
-# 日志文件
+# Log files
 APP_LOG_FILE = LOG_DIR / "app.log"
 ERROR_LOG_FILE = LOG_DIR / "error.log"
 DEBUG_LOG_FILE = LOG_DIR / "debug.log"
@@ -50,34 +50,34 @@ def setup_logging(
     detailed_format: bool = True
 ) -> None:
     """
-    配置应用的日志系统。
+    Configure application-wide logging.
     
     Parameters
     ----------
     log_level : str
-        日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
+        Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
     enable_file_logging : bool
-        是否启用文件日志
+        Whether to enable file logging
     enable_console_logging : bool
-        是否启用控制台日志
+        Whether to enable console logging
     detailed_format : bool
-        是否使用详细格式（包含函数名和行号）
+        Whether to use detailed format (including function name and line number)
     """
-    # 转换日志级别
+    # Convert log level string to numeric level
     numeric_level = getattr(logging, log_level.upper(), logging.INFO)
     
-    # 选择格式
+    # Choose format
     log_format = DETAILED_FORMAT if detailed_format else SIMPLE_FORMAT
     date_format = "%Y-%m-%d %H:%M:%S"
     
-    # 配置根日志记录器
+    # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(numeric_level)
     
-    # 清除现有的处理器
+    # Clear existing handlers
     root_logger.handlers.clear()
     
-    # 控制台处理器
+    # Console handler
     if enable_console_logging:
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(numeric_level)
@@ -85,21 +85,21 @@ def setup_logging(
         console_handler.setFormatter(console_formatter)
         root_logger.addHandler(console_handler)
     
-    # 文件处理器
+    # File handlers
     if enable_file_logging:
-        # 应用日志（所有级别）
+        # Application log (all levels)
         app_handler = RotatingFileHandler(
             APP_LOG_FILE,
             maxBytes=10 * 1024 * 1024,  # 10MB
             backupCount=5,
             encoding="utf-8"
         )
-        app_handler.setLevel(logging.DEBUG)  # 文件记录所有级别
+        app_handler.setLevel(logging.DEBUG)  # Log all levels to application file
         app_formatter = logging.Formatter(log_format, date_format)
         app_handler.setFormatter(app_formatter)
         root_logger.addHandler(app_handler)
         
-        # 错误日志（只记录 WARNING 及以上）
+        # Error log (WARNING and above)
         error_handler = RotatingFileHandler(
             ERROR_LOG_FILE,
             maxBytes=10 * 1024 * 1024,  # 10MB
@@ -111,7 +111,7 @@ def setup_logging(
         error_handler.setFormatter(error_formatter)
         root_logger.addHandler(error_handler)
         
-        # 调试日志（只记录 DEBUG）
+        # Debug log (DEBUG only)
         debug_handler = RotatingFileHandler(
             DEBUG_LOG_FILE,
             maxBytes=5 * 1024 * 1024,  # 5MB
@@ -123,36 +123,36 @@ def setup_logging(
         debug_handler.setFormatter(debug_formatter)
         root_logger.addHandler(debug_handler)
     
-    # 配置第三方库的日志级别
+    # Configure third-party logger levels
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     
-    # 记录日志系统初始化
+    # Log logging system initialization
     logger = logging.getLogger(__name__)
     logger.info("=" * 80)
-    logger.info("日志系统已初始化")
-    logger.info(f"日志级别: {log_level}")
-    logger.info(f"文件日志: {'启用' if enable_file_logging else '禁用'}")
-    logger.info(f"控制台日志: {'启用' if enable_console_logging else '禁用'}")
-    logger.info(f"日志目录: {LOG_DIR}")
+    logger.info("Logging system initialized")
+    logger.info(f"Log level: {log_level}")
+    logger.info(f"File logging: {'enabled' if enable_file_logging else 'disabled'}")
+    logger.info(f"Console logging: {'enabled' if enable_console_logging else 'disabled'}")
+    logger.info(f"Log directory: {LOG_DIR}")
     logger.info("=" * 80)
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """
-    获取日志记录器。
+    Get a configured logger instance.
     
     Parameters
     ----------
     name : Optional[str]
-        日志记录器名称，通常使用 __name__
+        Logger name, usually __name__
     
     Returns
     -------
     logging.Logger
-        配置好的日志记录器
+        Configured logger instance
     """
     return logging.getLogger(name or __name__)
 
@@ -167,24 +167,24 @@ def log_request(
     **kwargs
 ) -> None:
     """
-    记录 HTTP 请求的详细信息。
+    Log detailed information about an HTTP request.
     
     Parameters
     ----------
     logger : logging.Logger
-        日志记录器
+        Logger instance
     method : str
-        HTTP 方法
+        HTTP method
     path : str
-        请求路径
+        Request path
     status_code : Optional[int]
-        响应状态码
+        Response status code
     duration_ms : Optional[float]
-        请求处理时间（毫秒）
+        Request processing time in milliseconds
     user_id : Optional[int]
-        用户 ID
+        User ID
     **kwargs
-        其他要记录的信息
+        Additional information to log
     """
     parts = [f"{method} {path}"]
     
@@ -214,22 +214,22 @@ def log_database_operation(
     **kwargs
 ) -> None:
     """
-    记录数据库操作的详细信息。
+    Log detailed information about a database operation.
     
     Parameters
     ----------
     logger : logging.Logger
-        日志记录器
+        Logger instance
     operation : str
-        操作类型（SELECT, INSERT, UPDATE, DELETE）
+        Operation type (SELECT, INSERT, UPDATE, DELETE)
     table : str
-        表名
+        Table name
     record_id : Optional[int]
-        记录 ID
+        Record ID
     duration_ms : Optional[float]
-        操作耗时（毫秒）
+        Operation duration in milliseconds
     **kwargs
-        其他要记录的信息
+        Additional information to log
     """
     parts = [f"{operation} {table}"]
     
@@ -257,24 +257,24 @@ def log_api_call(
     **kwargs
 ) -> None:
     """
-    记录外部 API 调用的详细信息。
+    Log detailed information about an external API call.
     
     Parameters
     ----------
     logger : logging.Logger
-        日志记录器
+        Logger instance
     service : str
-        服务名称（如 "Ollama", "OutdoorActive"）
+        Service name (e.g., "Ollama", "OutdoorActive")
     endpoint : str
-        API 端点
+        API endpoint
     method : str
-        HTTP 方法
+        HTTP method
     duration_ms : Optional[float]
-        调用耗时（毫秒）
+        Call duration in milliseconds
     success : bool
-        是否成功
+        Whether the call was successful
     **kwargs
-        其他要记录的信息
+        Additional information to log
     """
     status = "✅" if success else "❌"
     parts = [f"{status} {service} {method} {endpoint}"]
@@ -299,20 +299,20 @@ def log_business_logic(
     **kwargs
 ) -> None:
     """
-    记录业务逻辑操作的详细信息。
+    Log detailed information about business logic operations.
     
     Parameters
     ----------
     logger : logging.Logger
-        日志记录器
+        Logger instance
     action : str
-        操作描述（如 "created", "updated", "calculated"）
+        Operation description (e.g., "created", "updated", "calculated")
     entity_type : str
-        实体类型（如 "Profile", "Route", "Souvenir"）
+        Entity type (e.g., "Profile", "Route", "Souvenir")
     entity_id : Optional[int]
-        实体 ID
+        Entity ID
     **kwargs
-        其他要记录的信息
+        Additional information to log
     """
     parts = [f"{action} {entity_type}"]
     
@@ -327,12 +327,12 @@ def log_business_logic(
     logger.info(f"📋 {message}")
 
 
-# 自动从设置初始化日志系统
+# Initialize logging system automatically from settings
 def init_logging_from_settings() -> None:
-    """从应用设置初始化日志系统。"""
+    """Initialize logging system from application settings."""
     settings = get_settings()
     
-    # 从环境变量或设置中读取日志配置
+    # Read logging configuration from environment variables or settings
     log_level = getattr(settings, "log_level", "INFO")
     enable_file = getattr(settings, "log_enable_file", True)
     enable_console = getattr(settings, "log_enable_console", True)
