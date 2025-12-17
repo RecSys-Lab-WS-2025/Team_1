@@ -23,10 +23,18 @@ class BreakpointResponse(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     main_quest_snippet: Optional[str] = None
-    side_plot_snippet: Optional[str] = None
     mini_quests: list["MiniQuestResponse"] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class RecommendationScoreBreakdown(BaseModel):
+    """Breakdown of recommendation score components."""
+    
+    difficulty: dict
+    distance: dict
+    tags: dict
+    total: float
 
 
 class RouteResponse(BaseModel):
@@ -47,8 +55,11 @@ class RouteResponse(BaseModel):
     story_prologue_title: Optional[str] = None
     story_prologue_body: Optional[str] = None
     story_epilogue_body: Optional[str] = None
+    gpx_data_raw: Optional[str] = None  # GPX track data for map visualization
     breakpoints: list[BreakpointResponse] = []
     is_locked: bool = False  # Computed field based on user XP
+    recommendation_score: Optional[float] = None  # CBF score (0.0-1.0)
+    recommendation_score_breakdown: Optional[RecommendationScoreBreakdown] = None  # Score components
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -163,6 +174,7 @@ class SouvenirResponse(BaseModel):
     total_xp_gained: int
     genai_summary: Optional[str] = None
     xp_breakdown_json: Optional[str] = None
+    pixel_image_svg: Optional[str] = None  # LLM-generated pixel art SVG
     route: Optional[RouteResponse] = None  # Nested route info
 
     model_config = ConfigDict(from_attributes=True)
@@ -223,6 +235,7 @@ class RecommendationResponse(BaseModel):
 class RouteCompleteRequest(BaseModel):
     """Complete route request schema."""
     
+    route_id: int  # Route ID to complete
     completed_quest_ids: list[int] = []  # List of completed quest IDs
 
 
@@ -231,7 +244,8 @@ class RouteCompleteResponse(BaseModel):
     
     souvenir: SouvenirResponse
     xp_breakdown: dict  # {"base": 100, "distance": 30, "quests": 20, "total": 150}
-    total_xp_gained: int
+    total_xp_gained: int  # XP earned from this route completion
+    new_total_xp: int  # New total XP after this completion
     new_level: int
 
 
@@ -310,11 +324,17 @@ class StoryGenerateRequest(BaseModel):
     force_regenerate: bool = False  # Force regenerate even if story exists
 
 
+class StoryMiniQuest(BaseModel):
+    """Mini quest data for story generation (without database IDs)."""
+    task_description: str
+    xp_reward: int
+
+
 class StoryBreakpointContent(BaseModel):
     """Story content for a single breakpoint."""
     index: int
     main_quest: str
-    side_plot: str
+    mini_quests: list[StoryMiniQuest] = []
 
 
 class StoryGenerateResponse(BaseModel):
@@ -324,6 +344,22 @@ class StoryGenerateResponse(BaseModel):
     prologue: str
     epilogue: str
     breakpoints: list[StoryBreakpointContent]
+
+
+# ============================================================================
+# Statistics Schemas
+# ============================================================================
+
+class ProfileStatisticsResponse(BaseModel):
+    """Profile statistics response schema."""
+    
+    total_distance_km: float  # Sum of all completed route distances
+    total_elevation_m: int  # Sum of all completed route elevations
+    routes_completed: int  # Total number of completed routes (souvenirs)
+    achievements_unlocked: int  # Number of unlocked achievements
+    activity_breakdown: dict[str, int]  # {"running": 2, "hiking": 5, "cycling": 1}
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Update forward references

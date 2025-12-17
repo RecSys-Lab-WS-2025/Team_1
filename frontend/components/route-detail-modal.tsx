@@ -37,10 +37,10 @@ export function RouteDetailModal({
   const hasCompletedQuestionnaire = isLoggedIn && userProfile.explorerType;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="max-w-3xl w-full my-8 border-4 border-border shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <Card className="max-w-3xl w-full mt-2 sm:mt-4 mb-auto border-4 border-border shadow-2xl max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
         {/* Header Image */}
-        <div className="relative h-64 bg-muted">
+        <div className="relative h-64 bg-muted flex-shrink-0">
           <img
             src={route.imageUrl || "/placeholder.svg"}
             alt={route.name}
@@ -75,7 +75,7 @@ export function RouteDetailModal({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Title & Location */}
           <div>
             <div className="flex items-start justify-between gap-4 mb-2">

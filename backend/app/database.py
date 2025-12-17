@@ -1,8 +1,10 @@
 """
 Database configuration and session management using SQLAlchemy.
 """
+from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Optional
 
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -18,7 +20,7 @@ class Base(DeclarativeBase):
 
 # Global engine and session factory
 _engine = None
-_async_session_maker: async_sessionmaker[AsyncSession] | None = None
+_async_session_maker: Optional[async_sessionmaker[AsyncSession]] = None
 
 
 def _ensure_sqlite_directory(url: str) -> None:
@@ -61,7 +63,7 @@ def get_database_url(settings: Settings) -> str:
     )
 
 
-def init_db(settings: Settings | None = None) -> None:
+def init_db(settings: Optional[Settings] = None) -> None:
     """
     Initialize the database engine and session factory.
     

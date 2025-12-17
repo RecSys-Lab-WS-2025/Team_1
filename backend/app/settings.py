@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # Ollama LLM configuration (for GenAI story generation)
     # Using Llama3.1:8b for high-quality, structured output
     ollama_api_url: str = Field(
-        default="http://localhost:11434/api/generate",
+        default="http://127.0.0.1:11434/api/generate",
         env="OLLAMA_API_URL",
         description="Ollama API endpoint URL",
     )
@@ -42,6 +42,28 @@ class Settings(BaseSettings):
         default=120,
         env="OLLAMA_TIMEOUT",
         description="Timeout in seconds for Ollama API calls (increased for batch story generation)",
+    )
+
+    # Logging configuration
+    log_level: str = Field(
+        default="INFO",
+        env="LOG_LEVEL",
+        description="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL",
+    )
+    log_enable_file: bool = Field(
+        default=True,
+        env="LOG_ENABLE_FILE",
+        description="Enable file logging",
+    )
+    log_enable_console: bool = Field(
+        default=True,
+        env="LOG_ENABLE_CONSOLE",
+        description="Enable console logging",
+    )
+    log_detailed_format: bool = Field(
+        default=True,
+        env="LOG_DETAILED_FORMAT",
+        description="Use detailed log format with function names and line numbers",
     )
 
     model_config = SettingsConfigDict(

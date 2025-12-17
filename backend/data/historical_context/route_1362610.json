@@ -1,0 +1,37 @@
+{
+  "route_id": 1362610,
+  "route_name": "Traditional Costume and Shooting Parade Wiesn",
+  "breakpoints": [
+    {
+      "order_index": 0,
+      "poi_name": "Theresienwiese Gate",
+      "poi_type": "trailhead",
+      "historical_context": "Theresienwiese (Theresa's Meadow) is named after Princess Therese of Saxe-Hildburghausen, who married Crown Prince Ludwig (later King Ludwig I) here in 1810. This wedding celebration is considered the first Oktoberfest. The meadow has been the site of the annual Oktoberfest since then, making it one of the world's largest and most famous folk festivals. The area covers 42 hectares and hosts millions of visitors each year. The name 'Theresienwiese' honors the princess, and the festival grounds have become an iconic symbol of Bavarian culture and tradition."
+    },
+    {
+      "order_index": 1,
+      "poi_name": "Bavaria Statue Steps",
+      "poi_type": "landmark",
+      "historical_context": "The Bavaria statue, completed in 1850, is a monumental bronze statue representing Bavaria, the female personification of the Bavarian homeland. Designed by Ludwig Schwanthaler and cast by Ferdinand von Miller, it stands 18.52 meters tall and weighs approximately 87.36 tons. The statue was a symbol of Bavarian identity and strength during the 19th century. Visitors can climb the internal staircase to reach the head, offering panoramic views of Munich. The statue is flanked by four lions, each representing different aspects of Bavarian character. It was one of the largest bronze statues of its time and remains a significant landmark."
+    },
+    {
+      "order_index": 2,
+      "poi_name": "Oktoberfest Midway",
+      "poi_type": "festival_lane",
+      "historical_context": "The Oktoberfest midway, known as the 'Wiesn' to locals, features rows of colorful festival tents and amusement rides. The festival has evolved from a royal wedding celebration into a world-renowned event attracting over 6 million visitors annually. The midway is where traditional Bavarian culture meets modern entertainment, with beer tents serving authentic Bavarian beer, traditional food stalls offering pretzels, sausages, and roasted chicken, and carnival rides providing entertainment. The atmosphere is a unique blend of historical tradition and contemporary festivity, creating an unforgettable experience for visitors from around the world."
+    },
+    {
+      "order_index": 3,
+      "poi_name": "Craft Market Lane",
+      "poi_type": "market",
+      "historical_context": "The craft market at Oktoberfest showcases traditional Bavarian craftsmanship, including hand-carved beer steins, traditional costumes (Lederhosen and Dirndl), and artisanal goods. These crafts represent centuries of Bavarian tradition, with techniques passed down through generations. The market lane is a celebration of local artisans and their skills, offering visitors authentic souvenirs and a glimpse into Bavarian cultural heritage. Many of these crafts have historical significance, with patterns and designs that date back to medieval times, making this area a living museum of Bavarian craftsmanship."
+    },
+    {
+      "order_index": 4,
+      "poi_name": "Festzelt Finish Arch",
+      "poi_type": "finish_line",
+      "historical_context": "The Festzelt (festival tent) finish arch marks the completion of the traditional Oktoberfest route. These massive beer tents are architectural marvels, some seating up to 10,000 people. The tents are decorated with traditional Bavarian motifs and serve as the heart of the festival, where visitors gather to enjoy beer, music, and camaraderie. The finish arch symbolizes the culmination of the Oktoberfest experience, where tradition, celebration, and community come together. The tents themselves are temporary structures that are erected and dismantled each year, representing the cyclical nature of this beloved festival."
+    }
+  ]
+}
+

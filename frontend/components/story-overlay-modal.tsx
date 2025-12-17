@@ -41,9 +41,11 @@ export function StoryOverlayModal({
       <div 
         className={`relative bg-card border-4 border-primary shadow-2xl ${
           isPrologue || isEpilogue 
-            ? 'max-w-2xl w-full mx-4' 
+            ? 'max-w-3xl w-full mx-4' 
+            : isChapter
+            ? 'max-w-3xl w-full mx-4' // Larger for long chapter content
             : 'max-w-lg w-full mx-4'
-        } max-h-[70vh] flex flex-col`}
+        } max-h-[85vh] flex flex-col`}
       >
         {/* Header with scroll-style decoration */}
         <div className="bg-primary/20 border-b-4 border-primary p-6">
@@ -63,10 +65,14 @@ export function StoryOverlayModal({
 
         {/* Scrollable content area */}
         <div className="flex-1 overflow-y-auto p-6 bg-muted/10">
-          <div className="prose prose-sm max-w-none">
-            <p className="text-foreground leading-relaxed whitespace-pre-line">
-              {content}
+          <div className="prose prose-base max-w-none">
+            <div className="text-foreground leading-relaxed whitespace-pre-line text-base space-y-4">
+              {content.split('\n\n').map((paragraph, idx) => (
+                <p key={idx} className="mb-4">
+                  {paragraph}
             </p>
+              ))}
+            </div>
           </div>
 
           {/* Quest teaser section for chapter modals */}

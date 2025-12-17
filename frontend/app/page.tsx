@@ -15,11 +15,52 @@ export default function Home() {
     // Check if user has completed onboarding
     const savedProfile = localStorage.getItem('trailsaga-profile');
     if (savedProfile) {
-      setUserProfile(JSON.parse(savedProfile));
-      setIsLoggedIn(true);
-      setCurrentView('home');
+      const profile = JSON.parse(savedProfile);
+      
+      // Verify user exists in backend database
+      verifyUserProfile(profile).then((isValid) => {
+        if (isValid) {
+          setUserProfile(profile);
+          setIsLoggedIn(true);
+          setCurrentView('home');
+        } else {
+          // User doesn't exist in backend, clear localStorage and show welcome
+          console.warn('User profile not found in backend, clearing local data');
+          localStorage.removeItem('trailsaga-profile');
+          setUserProfile(null);
+          setIsLoggedIn(false);
+          setCurrentView('welcome');
+        }
+      }).catch((error) => {
+        // If backend is unavailable, still use local profile
+        console.warn('Could not verify user profile:', error);
+        setUserProfile(profile);
+        setIsLoggedIn(true);
+        setCurrentView('home');
+      });
     }
   }, []);
+
+  const verifyUserProfile = async (profile: UserProfile): Promise<boolean> => {
+    // Only verify if we have a numeric backend profile ID
+    if (!profile.id) return false;
+    
+    const profileIdNum = parseInt(profile.id, 10);
+    if (isNaN(profileIdNum)) return false; // Local-only profile, skip verification
+    
+    try {
+      const { apiClient } = await import('@/lib/api-client');
+      await apiClient.get(`api/profiles/${profileIdNum}`);
+      return true; // User exists in backend
+    } catch (error: any) {
+      // 404 means user doesn't exist
+      if (error?.status === 404) {
+        return false;
+      }
+      // Other errors (network, etc.) - assume user exists to avoid disrupting UX
+      throw error;
+    }
+  };
 
   const handleStartAdventure = () => {
     setCurrentView('onboarding');

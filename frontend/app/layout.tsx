@@ -15,8 +15,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'TrailSaga - Gamified Outdoor Adventure',
-  description: 'Transform your outdoor exploration into an epic adventure story',
+  title: 'TrailSaga – Hogwarts Expedition Series - Gamified Outdoor Adventure',
+  description: 'Transform your outdoor exploration into an epic, wizarding adventure story',
   generator: 'v0.app',
   icons: {
     icon: [

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XP Save Test Script</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .warning {
+            color: #ffc107;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 XP Save Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>Open browser DevTools Console (F12)</li>
+            <li>Navigate to your app and complete a route</li>
+            <li>On the completion screen, click "check it out in your Souvenir Gallery"</li>
+            <li>Check the console logs and localStorage to verify XP was saved</li>
+            <li>Alternatively, use the manual test buttons below</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Current Profile State</h2>
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-label">Current XP</div>
+                <div class="stat-value" id="currentXP">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="currentLevel">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed Routes</div>
+                <div class="stat-value" id="completedRoutes">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Souvenirs</div>
+                <div class="stat-value" id="souvenirCount">0</div>
+            </div>
+        </div>
+        <button class="button" onclick="refreshStats()">Refresh Stats</button>
+        <button class="button" onclick="clearLocalStorage()">Clear localStorage</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <div class="log" id="log"></div>
+        <button class="button" onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Test</h2>
+        <p>Simulate the completion flow to test XP saving:</p>
+        <button class="button" onclick="testGalleryClick()">Test: Click Gallery Link</button>
+        <button class="button" onclick="testContinueClick()">Test: Click Continue Button</button>
+        <button class="button" onclick="testBothClicks()">Test: Click Both (Verify No Duplicate)</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Code Flow Analysis</h2>
+        <div id="codeFlow"></div>
+    </div>
+
+    <script>
+        let logContent = '';
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: '✓',
+                error: '✗',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+            const prefix = colors[type] || 'ℹ';
+            logContent += `[${timestamp}] ${prefix} ${message}\n`;
+            document.getElementById('log').textContent = logContent;
+            document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+            
+            // Also log to console
+            const consoleMethod = type === 'error' ? 'error' : type === 'warning' ? 'warn' : 'log';
+            console[consoleMethod](`[XP Test] ${message}`);
+        }
+
+        function clearLog() {
+            logContent = '';
+            document.getElementById('log').textContent = '';
+        }
+
+        function getProfile() {
+            try {
+                const profileStr = localStorage.getItem('trailsaga-profile');
+                if (profileStr) {
+                    return JSON.parse(profileStr);
+                }
+            } catch (e) {
+                log(`Error reading profile: ${e.message}`, 'error');
+            }
+            return null;
+        }
+
+        function refreshStats() {
+            const profile = getProfile();
+            if (profile) {
+                document.getElementById('currentXP').textContent = profile.xp || 0;
+                document.getElementById('currentLevel').textContent = profile.level || 1;
+                document.getElementById('completedRoutes').textContent = 
+                    (profile.completedRoutes || []).length;
+                document.getElementById('souvenirCount').textContent = 
+                    (profile.souvenirs || []).length;
+                log('Stats refreshed successfully', 'success');
+                
+                // Log detailed profile info
+                log(`Profile ID: ${profile.id || 'N/A'}`, 'info');
+                log(`Profile XP: ${profile.xp || 0}`, 'info');
+                log(`Profile Level: ${profile.level || 1}`, 'info');
+                log(`Completed Routes: ${(profile.completedRoutes || []).join(', ') || 'None'}`, 'info');
+            } else {
+                log('No profile found in localStorage', 'warning');
+                document.getElementById('currentXP').textContent = 'N/A';
+                document.getElementById('currentLevel').textContent = 'N/A';
+                document.getElementById('completedRoutes').textContent = 'N/A';
+                document.getElementById('souvenirCount').textContent = 'N/A';
+            }
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Are you sure you want to clear localStorage? This will remove your profile data.')) {
+                localStorage.removeItem('trailsaga-profile');
+                log('localStorage cleared', 'warning');
+                refreshStats();
+            }
+        }
+
+        // Monitor localStorage changes
+        let lastProfile = null;
+        function monitorLocalStorage() {
+            const currentProfile = getProfile();
+            if (currentProfile) {
+                if (lastProfile) {
+                    const xpDiff = (currentProfile.xp || 0) - (lastProfile.xp || 0);
+                    const levelDiff = (currentProfile.level || 1) - (lastProfile.level || 1);
+                    const routesDiff = (currentProfile.completedRoutes || []).length - 
+                                     (lastProfile.completedRoutes || []).length;
+                    const souvenirsDiff = (currentProfile.souvenirs || []).length - 
+                                        (lastProfile.souvenirs || []).length;
+                    
+                    if (xpDiff !== 0) {
+                        log(`XP changed: ${lastProfile.xp || 0} → ${currentProfile.xp || 0} (+${xpDiff})`, 
+                            xpDiff > 0 ? 'success' : 'error');
+                    }
+                    if (levelDiff !== 0) {
+                        log(`Level changed: ${lastProfile.level || 1} → ${currentProfile.level || 1} (+${levelDiff})`, 
+                            levelDiff > 0 ? 'success' : 'error');
+                    }
+                    if (routesDiff !== 0) {
+                        log(`Completed routes changed: +${routesDiff}`, 
+                            routesDiff > 0 ? 'success' : 'error');
+                    }
+                    if (souvenirsDiff !== 0) {
+                        log(`Souvenirs changed: +${souvenirsDiff}`, 
+                            souvenirsDiff > 0 ? 'success' : 'error');
+                    }
+                }
+                lastProfile = JSON.parse(JSON.stringify(currentProfile));
+            }
+            refreshStats();
+        }
+
+        // Test simulation functions
+        function testGalleryClick() {
+            log('=== Testing Gallery Link Click ===', 'info');
+            const profileBefore = getProfile();
+            const xpBefore = profileBefore ? (profileBefore.xp || 0) : 0;
+            
+            log('Before: XP = ' + xpBefore, 'info');
+            log('Simulating: Click on "check it out in your Souvenir Gallery"', 'info');
+            log('Expected: XP should be saved before opening gallery', 'info');
+            
+            setTimeout(() => {
+                const profileAfter = getProfile();
+                const xpAfter = profileAfter ? (profileAfter.xp || 0) : 0;
+                log('After: XP = ' + xpAfter, 'info');
+                
+                if (xpAfter > xpBefore) {
+                    log(`✅ SUCCESS: XP was saved! (+${xpAfter - xpBefore} XP)`, 'success');
+                } else if (xpAfter === xpBefore) {
+                    log('❌ FAIL: XP was NOT saved (XP unchanged)', 'error');
+                } else {
+                    log('❌ FAIL: XP decreased unexpectedly', 'error');
+                }
+            }, 1000);
+        }
+
+        function testContinueClick() {
+            log('=== Testing Continue Button Click ===', 'info');
+            const profileBefore = getProfile();
+            const xpBefore = profileBefore ? (profileBefore.xp || 0) : 0;
+            
+            log('Before: XP = ' + xpBefore, 'info');
+            log('Simulating: Click on "Continue Exploring"', 'info');
+            log('Expected: XP should be saved', 'info');
+            
+            setTimeout(() => {
+                const profileAfter = getProfile();
+                const xpAfter = profileAfter ? (profileAfter.xp || 0) : 0;
+                log('After: XP = ' + xpAfter, 'info');
+                
+                if (xpAfter > xpBefore) {
+                    log(`✅ SUCCESS: XP was saved! (+${xpAfter - xpBefore} XP)`, 'success');
+                } else if (xpAfter === xpBefore) {
+                    log('❌ FAIL: XP was NOT saved (XP unchanged)', 'error');
+                }
+            }, 1000);
+        }
+
+        function testBothClicks() {
+            log('=== Testing Both Clicks (No Duplicate Save) ===', 'info');
+            const profileBefore = getProfile();
+            const xpBefore = profileBefore ? (profileBefore.xp || 0) : 0;
+            
+            log('Before: XP = ' + xpBefore, 'info');
+            log('Step 1: Click Gallery link (should save XP)', 'info');
+            
+            setTimeout(() => {
+                const profileAfterGallery = getProfile();
+                const xpAfterGallery = profileAfterGallery ? (profileAfterGallery.xp || 0) : 0;
+                log(`After Gallery click: XP = ${xpAfterGallery}`, 'info');
+                
+                log('Step 2: Click Continue button (should NOT duplicate save)', 'info');
+                
+                setTimeout(() => {
+                    const profileAfterContinue = getProfile();
+                    const xpAfterContinue = profileAfterContinue ? (profileAfterContinue.xp || 0) : 0;
+                    log(`After Continue click: XP = ${xpAfterContinue}`, 'info');
+                    
+                    const totalXpGained = xpAfterContinue - xpBefore;
+                    const expectedGain = 100; // Assuming test route gives 100 XP
+                    
+                    if (xpAfterContinue === xpAfterGallery && xpAfterContinue > xpBefore) {
+                        log(`✅ SUCCESS: XP saved once correctly (+${totalXpGained} XP, no duplicate)`, 'success');
+                    } else if (xpAfterContinue > xpAfterGallery) {
+                        log(`❌ FAIL: XP was saved twice! (+${xpAfterGallery - xpBefore} + ${xpAfterContinue - xpAfterGallery} = ${totalXpGained})`, 'error');
+                    } else {
+                        log(`❌ FAIL: XP not saved correctly`, 'error');
+                    }
+                }, 500);
+            }, 500);
+        }
+
+        // Analyze code flow
+        function analyzeCodeFlow() {
+            const flow = `
+Code Flow Analysis:
+===================
+
+1. CompletionSummary Component (completion-summary.tsx)
+   - Receives props: onClose, onViewSouvenirs
+   - Gallery link button calls: onViewSouvenirs()
+   - Continue button calls: onClose()
+
+2. HikingSimulator Component (hiking-simulator.tsx)
+   - handleViewSouvenirs():
+     * Calls handleSaveCompletion() FIRST
+     * Then calls onViewSouvenirs() prop
+   
+   - handleCompletionClose():
+     * Calls handleSaveCompletion()
+   
+   - handleSaveCompletion():
+     * Checks if !isRouteCompleted
+     * Sets isRouteCompleted = true
+     * Calls onComplete(route, totalXpGained, completedQuests)
+
+3. RouteRecommendations Component (route-recommendations.tsx)
+   - handleCompleteRoute():
+     * Creates souvenir
+     * Updates profile XP
+     * Saves to localStorage
+     * Calls backend API (if logged in)
+
+Expected Behavior:
+==================
+- Clicking Gallery link → handleViewSouvenirs() → handleSaveCompletion() → XP saved ✅
+- Clicking Continue button → handleCompletionClose() → handleSaveCompletion() → XP saved ✅
+- Both clicks should only save once due to isRouteCompleted flag ✅
+
+Potential Issues:
+=================
+1. onViewSouvenirs prop might not be passed correctly
+2. handleSaveCompletion might not be called
+3. isRouteCompleted state might not work as expected
+4. onComplete callback might not save to localStorage/backend
+            `;
+            
+            document.getElementById('codeFlow').innerHTML = '<pre>' + flow + '</pre>';
+            log('Code flow analysis displayed', 'info');
+        }
+
+        // Initialize
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'trailsaga-profile') {
+                log('localStorage change detected!', 'info');
+                monitorLocalStorage();
+            }
+        });
+
+        // Poll for localStorage changes (since storage event only fires in other tabs)
+        setInterval(() => {
+            monitorLocalStorage();
+        }, 500);
+
+        // Initial load
+        refreshStats();
+        analyzeCodeFlow();
+        log('Test script initialized. Ready to monitor XP saves.', 'success');
+        log('Open your app in another tab and complete a route to see real-time monitoring.', 'info');
+    </script>
+</body>
+</html>
+

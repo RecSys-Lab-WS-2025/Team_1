@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailSaga – Hogwarts Expedition Series Backend Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header .version {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .status-operational {
+            background: #10b981;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            font-size: 1.3em;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .endpoint-list {
+            list-style: none;
+        }
+
+        .endpoint-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .endpoint-list li:last-child {
+            border-bottom: none;
+        }
+
+        .endpoint-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .endpoint-link:hover {
+            color: #764ba2;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .llm-output {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .llm-output h2 {
+            font-size: 1.3em;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .llm-message {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .llm-message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .llm-message-title {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.05em;
+        }
+
+        .llm-message-time {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .llm-message-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-size: 0.95em;
+        }
+
+        .llm-message-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .type-welcome { background: #dbeafe; color: #1e40af; }
+        .type-skeleton { background: #fef3c7; color: #92400e; }
+        .type-story_points { background: #d1fae5; color: #065f46; }
+        .type-post_run { background: #fce7f3; color: #9f1239; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛰️ TrailSaga – Hogwarts Expedition Series Backend API</h1>
+            <div class="version">Version {{ version }}</div>
+            <div class="status-badge status-operational">{{ status }}</div>
+            <p style="margin-top: 15px; color: #666;">{{ description }}</p>
+        </div>
+
+        <div class="grid">
+            <!-- Statistics Card -->
+            <div class="card">
+                <h2>📊 Statistics</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Total Users</span>
+                    <span class="stat-value">{{ statistics.total_users }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Routes</span>
+                    <span class="stat-value">{{ statistics.total_routes }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total XP Earned</span>
+                    <span class="stat-value">{{ statistics.total_xp_earned }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Average Level</span>
+                    <span class="stat-value">{{ statistics.average_level }}</span>
+                </div>
+            </div>
+
+            <!-- System Info Card -->
+            <div class="card">
+                <h2>⚙️ System Info</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Database</span>
+                    <span>
+                        {{ database.type }}
+                        <span class="badge badge-success">{{ database.status }}</span>
+                    </span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">LLM Service</span>
+                    <span class="badge badge-info">{{ llm.service }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">LLM Model</span>
+                    <span style="font-weight: 600;">{{ llm.model }}</span>
+                </div>
+            </div>
+
+            <!-- API Endpoints Card -->
+            <div class="card">
+                <h2>🔗 API Endpoints</h2>
+                <ul class="endpoint-list">
+                    <li>
+                        <a href="/docs" class="endpoint-link" target="_blank">
+                            📚 Documentation
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/healthz" class="endpoint-link" target="_blank">
+                            ❤️ Health Check
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/api/routes/recommendations" class="endpoint-link" target="_blank">
+                            🗺️ Routes Recommendations
+                        </a>
+                    </li>
+                    <li>
+                        <span style="color: #666; font-size: 0.9em;">
+                            📝 Note: Use <a href="/docs" style="color: #667eea;">API Docs</a> to test endpoints
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- LLM Output Card -->
+        <div class="llm-output">
+            <h2>✨ Real-time LLM Output</h2>
+            <div id="llm-messages-container">
+                <div class="empty-state">Waiting for LLM generation...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>TrailSaga – Hogwarts Expedition Series Backend API Dashboard | Real-time statistics & LLM monitoring</p>
+        </div>
+    </div>
+
+    <script>
+        // LLM Output Streaming
+        const messagesContainer = document.getElementById('llm-messages-container');
+        let messageCount = 0;
+
+        function addLLMMessage(message) {
+            if (messageCount === 0) {
+                messagesContainer.innerHTML = '';
+            }
+            messageCount++;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'llm-message';
+            
+            const typeClass = `type-${message.type}`;
+            const typeLabels = {
+                'welcome': '👋 Welcome',
+                'skeleton': '📖 Story Skeleton',
+                'story_points': '📍 Story Points',
+                'post_run': '🏁 Post-Run'
+            };
+
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            
+            messageDiv.innerHTML = `
+                <div class="llm-message-header">
+                    <div>
+                        <span class="llm-message-type ${typeClass}">${typeLabels[message.type] || message.type}</span>
+                        <span class="llm-message-title">${message.title}</span>
+                    </div>
+                    <span class="llm-message-time">${time}</span>
+                </div>
+                <div class="llm-message-content">${escapeHtml(message.content)}</div>
+            `;
+            
+            messagesContainer.insertBefore(messageDiv, messagesContainer.firstChild);
+            
+            // Keep only last 20 messages
+            while (messagesContainer.children.length > 20) {
+                messagesContainer.removeChild(messagesContainer.lastChild);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        // Connect to SSE stream
+        const eventSource = new EventSource('/api/llm-stream');
+        
+        eventSource.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type !== 'heartbeat') {
+                    addLLMMessage(data);
+                }
+            } catch (e) {
+                console.error('Error parsing SSE message:', e);
+            }
+        };
+
+        eventSource.onerror = function(event) {
+            console.error('SSE connection error');
+            // Try to reconnect after 3 seconds
+            setTimeout(() => {
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    location.reload();
+                }
+            }, 3000);
+        };
+
+        // Load recent messages on page load
+        fetch('/api/llm-messages')
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    messagesContainer.innerHTML = '';
+                    data.messages.reverse().forEach(msg => addLLMMessage(msg));
+                }
+            })
+            .catch(err => console.error('Error loading recent messages:', err));
+
+        // Auto-refresh statistics every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>
+

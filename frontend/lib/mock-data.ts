@@ -1,9 +1,40 @@
-// Mock data for TrailSaga prototype
+// Mock data for TrailSaga – Hogwarts Expedition Series prototype
 //
 // NOTE: When connecting to the real backend API, use the types from api-types.ts
 // and transform the data accordingly. Specifically:
 // - xpReward should come from ApiRoute.base_xp_reward (the Base XP earned from completing the route)
 // - xpRequired corresponds to ApiRoute.xp_required (XP needed to unlock the route)
+
+export interface RecommendationScoreBreakdown {
+  difficulty: {
+    score: number;
+    weight: number;
+    weighted_score: number;
+    user_range: [number, number];
+    route_value: number;
+  };
+  distance: {
+    score: number;
+    weight: number;
+    weighted_score: number;
+    user_range: [number, number];
+    route_value: number;
+  };
+  tags: {
+    score: number;
+    weight: number;
+    weighted_score: number;
+    user_tags: string[];
+    route_tags: string[];
+  };
+  total: number;
+  // Feedback-related fields (optional, added by backend when feedback exists)
+  feedback_adjusted?: boolean;
+  base_score?: number;
+  final_score?: number;
+  feedback_penalty?: number;
+  feedback_count?: number;
+}
 
 export interface Route {
   id: string;
@@ -25,6 +56,9 @@ export interface Route {
   breakpoints: Breakpoint[];
   prologue?: string;
   epilogue?: string;
+  recommendationScore?: number | null; // CBF recommendation score (0.0-1.0)
+  recommendationScoreBreakdown?: RecommendationScoreBreakdown | null; // Score breakdown
+  gpxData?: string | null; // GPX track data for map visualization
 }
 
 export interface Breakpoint {
@@ -34,6 +68,9 @@ export interface Breakpoint {
   type: "story" | "quest" | "checkpoint";
   content?: string;
   quest?: MiniQuest;
+  latitude?: number; // Optional: GPS latitude for map display
+  longitude?: number; // Optional: GPS longitude for map display
+  orderIndex?: number; // Optional: Order index for sorting
 }
 
 export interface MiniQuest {
@@ -82,6 +119,9 @@ export interface DigitalSouvenir {
   imageUrl: string;
   difficulty: string;
   distance: number;
+  genaiSummary?: string | null;
+  xpBreakdown?: string | null; // JSON string
+  pixelImageSvg?: string | null; // LLM-generated pixel art SVG
 }
 
 export const mockRoutes: Route[] = [
@@ -109,6 +149,9 @@ export const mockRoutes: Route[] = [
         name: "Forest Entrance",
         distance: 0,
         type: "story",
+        orderIndex: 0,
+        latitude: 48.0,
+        longitude: 8.0,
         content:
           "The towering pines create a natural cathedral around you. Ancient moss covers the stones beneath your feet, and somewhere in the distance, you hear the song of a hidden stream. The air is cool and filled with the scent of pine needles and earth.",
       },
@@ -117,6 +160,9 @@ export const mockRoutes: Route[] = [
         name: "Hidden Waterfall",
         distance: 3.2,
         type: "quest",
+        orderIndex: 1,
+        latitude: 48.05,
+        longitude: 8.1,
         content:
           "The sound of rushing water grows louder as you round a bend in the trail. Before you, a stunning waterfall cascades down moss-covered rocks into a crystal-clear pool. Sunlight filters through the canopy above, creating dancing patterns of light on the water.",
         quest: {
@@ -133,6 +179,9 @@ export const mockRoutes: Route[] = [
         name: "Summit Ridge",
         distance: 6.5,
         type: "story",
+        orderIndex: 2,
+        latitude: 48.1,
+        longitude: 8.15,
         content:
           "You reach a clearing on the ridge, and the view takes your breath away. The entire Black Forest spreads out before you, a sea of green stretching to the horizon. This is why you came. This moment of perfect stillness, where earth meets sky.",
       },
@@ -141,6 +190,9 @@ export const mockRoutes: Route[] = [
         name: "Trail End",
         distance: 8.5,
         type: "checkpoint",
+        orderIndex: 3,
+        latitude: 48.15,
+        longitude: 8.2,
         content:
           "The trail gently descends back toward civilization. Your legs are tired but your spirit soars. You have completed the journey through one of Germany's most mystical forests.",
       },
@@ -170,6 +222,9 @@ export const mockRoutes: Route[] = [
         name: "Marienplatz",
         distance: 0,
         type: "story",
+        orderIndex: 0,
+        latitude: 48.1374,
+        longitude: 11.5755,
         content:
           "The New Town Hall towers above you, its neo-Gothic spires reaching toward the sky. The famous Glockenspiel will soon perform its mechanical dance. Tourists and locals alike gather in this square, the beating heart of Munich.",
       },
@@ -178,6 +233,9 @@ export const mockRoutes: Route[] = [
         name: "English Garden",
         distance: 2.8,
         type: "quest",
+        orderIndex: 1,
+        latitude: 48.1633,
+        longitude: 11.5925,
         content:
           "You arrive at the English Garden, one of the world's largest urban parks. Surfers ride the Eisbach wave, joggers pass by, and locals relax on the grass. This oasis in the middle of the city perfectly captures Munich's love of nature.",
         quest: {
@@ -195,6 +253,9 @@ export const mockRoutes: Route[] = [
         name: "River Isar",
         distance: 5.2,
         type: "story",
+        orderIndex: 2,
+        latitude: 48.15,
+        longitude: 11.6,
         content:
           "The Isar River flows peacefully through the city, its turquoise waters a reminder of the Alps not far away. Locals sunbathe on the banks, and you understand why Munich is considered one of the most livable cities in the world.",
       },
@@ -224,12 +285,18 @@ export const mockRoutes: Route[] = [
         name: "Base Camp",
         distance: 0,
         type: "story",
+        orderIndex: 0,
+        latitude: 47.5,
+        longitude: 11.0,
       },
       {
         id: "bp2",
         name: "Ridge Ascent",
         distance: 5.5,
         type: "quest",
+        orderIndex: 1,
+        latitude: 47.55,
+        longitude: 11.05,
         quest: {
           id: "q3",
           title: "Weather Check",
@@ -245,6 +312,9 @@ export const mockRoutes: Route[] = [
         name: "Summit",
         distance: 14.8,
         type: "checkpoint",
+        orderIndex: 2,
+        latitude: 47.6,
+        longitude: 11.1,
       },
     ],
   },
@@ -270,18 +340,27 @@ export const mockRoutes: Route[] = [
         name: "Starting Point",
         distance: 0,
         type: "story",
+        orderIndex: 0,
+        latitude: 50.0,
+        longitude: 7.5,
       },
       {
         id: "bp2",
         name: "Castle View",
         distance: 5.0,
         type: "checkpoint",
+        orderIndex: 1,
+        latitude: 50.05,
+        longitude: 7.55,
       },
       {
         id: "bp3",
         name: "Finish Line",
         distance: 10.3,
         type: "story",
+        orderIndex: 2,
+        latitude: 50.1,
+        longitude: 7.6,
       },
     ],
   },
@@ -306,12 +385,18 @@ export const mockRoutes: Route[] = [
         name: "Brandenburg Gate",
         distance: 0,
         type: "story",
+        orderIndex: 0,
+        latitude: 52.5163,
+        longitude: 13.3777,
       },
       {
         id: "bp2",
         name: "Checkpoint Charlie",
         distance: 3.2,
         type: "quest",
+        orderIndex: 1,
+        latitude: 52.5074,
+        longitude: 13.3904,
         quest: {
           id: "q4",
           title: "History Detective",
@@ -327,6 +412,9 @@ export const mockRoutes: Route[] = [
         name: "East Side Gallery",
         distance: 6.5,
         type: "checkpoint",
+        orderIndex: 2,
+        latitude: 52.5055,
+        longitude: 13.4406,
       },
     ],
   },
@@ -353,12 +441,18 @@ export const mockRoutes: Route[] = [
         name: "Trail Head",
         distance: 0,
         type: "story",
+        orderIndex: 0,
+        latitude: 50.9625,
+        longitude: 14.0686,
       },
       {
         id: "bp2",
         name: "Bastei Bridge",
         distance: 6.2,
         type: "quest",
+        orderIndex: 1,
+        latitude: 50.9619,
+        longitude: 14.0706,
         quest: {
           id: "q5",
           title: "Rock Formation Study",
@@ -372,6 +466,9 @@ export const mockRoutes: Route[] = [
         name: "Return Path",
         distance: 12.4,
         type: "checkpoint",
+        orderIndex: 2,
+        latitude: 50.9613,
+        longitude: 14.0726,
       },
     ],
   },

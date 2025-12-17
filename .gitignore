@@ -34,3 +34,7 @@ out/
 .idea/
 .vscode/
 
+# Logs
+backend/logs/
+*.log
+

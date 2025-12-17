@@ -158,7 +158,7 @@ def generate_fallback_welcome(questionnaire: ProfileCreate) -> str:
         f"Welcome, {title}!\n\n"
         f"You're passionate about {adventure_description}. "
         f"We've prepared a collection of {narrative_style} tailored just for you!\n\n"
-        f"Ready to begin your legendary saga?"
+        f"Ready to begin your legendary saga? 🤍"
     )
     
     return welcome_message

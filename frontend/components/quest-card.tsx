@@ -146,6 +146,24 @@ export function QuestCard({ quest, onComplete, onSkip }: QuestCardProps) {
             </>
           )}
 
+          {/* Observation quest or default quest type */}
+          {(quest.type === 'observation' || (!quest.type || (quest.type !== 'photo' && quest.type !== 'quiz'))) && !submitted && (
+            <Button
+              size="lg"
+              className="w-full py-6 text-lg bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+              onClick={() => {
+                setSubmitted(true);
+                setIsCorrect(true);
+                setTimeout(() => {
+                  onComplete();
+                }, 1000);
+              }}
+            >
+              <CheckCircle2 className="mr-2 w-5 h-5" />
+              Complete Quest
+            </Button>
+          )}
+
           {/* Result */}
           {submitted && (
             <div

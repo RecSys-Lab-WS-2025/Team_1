@@ -12,6 +12,11 @@ interface CompletionSummaryProps {
   userProfile: UserProfile;
   xpGained: number;
   questsCompleted: number;
+  /**
+   * Optional AI-generated trip summary (from backend post-run summary).
+   * If provided, this will be shown instead of the deterministic summary.
+   */
+  aiSummary?: string | null;
   onClose: () => void;
   onViewSouvenirs?: () => void;
 }
@@ -21,6 +26,7 @@ export function CompletionSummary({
   userProfile,
   xpGained,
   questsCompleted,
+  aiSummary,
   onClose,
   onViewSouvenirs,
 }: CompletionSummaryProps) {
@@ -58,14 +64,19 @@ export function CompletionSummary({
     return () => clearTimeout(timer);
   }, []);
 
-  const generateAISummary = () => {
-    const summaries = [
-      `Impressive work on ${route.name}! Your ${userProfile.explorerType} spirit shines through. You've shown great determination navigating this ${route.difficulty} route. Next, consider pushing yourself with a more challenging trail to continue your growth.`,
-      `Congratulations on completing ${route.name}! Your performance demonstrates the heart of a true ${userProfile.explorerType}. The way you handled the ${route.difficulty} terrain shows you're ready for the next level. Keep building on this momentum!`,
-      `Well done on conquering ${route.name}! As a ${userProfile.explorerType}, you've proven yourself capable of handling ${route.difficulty} challenges. Your journey continues to evolve - perhaps it's time to explore a different type of adventure?`,
-    ];
-    return summaries[Math.floor(Math.random() * summaries.length)];
+  /**
+   * Deterministic trip summary (no AI / randomness).
+   */
+  const getDeterministicSummary = () => {
+    const difficultyLabel = route.difficulty;
+    return `You completed ${route.name}, a ${difficultyLabel} route, earning ${xpGained} XP as a ${userProfile.explorerType}. Keep exploring to unlock more adventures and routes. 🤍`;
   };
+
+  // Prefer AI-generated summary when available, fall back to deterministic one
+  const tripSummaryText = aiSummary && aiSummary.trim().length > 0
+    ? aiSummary
+    : getDeterministicSummary();
+  const isAiSummary = !!(aiSummary && aiSummary.trim().length > 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/20 via-background to-accent/20 flex items-center justify-center p-4">
@@ -155,10 +166,20 @@ export function CompletionSummary({
             <div className="space-y-3">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="w-5 h-5 text-secondary" />
-                <h3 className="font-semibold text-foreground">AI Explorer's Summary</h3>
+                <h3 className="font-semibold text-foreground">
+                  {isAiSummary ? 'AI Trip Summary' : 'Trip Summary'}
+                </h3>
               </div>
+              
+              {!isAiSummary && (
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="w-4 h-4 animate-spin text-secondary" />
+                  <span>Generating AI Trip Summary...</span>
+                </div>
+              )}
+
               <p className="text-foreground leading-relaxed italic">
-                "{generateAISummary()}"
+                {tripSummaryText}
               </p>
             </div>
           </Card>
@@ -168,8 +189,17 @@ export function CompletionSummary({
             <button
               onClick={() => {
                 console.log('[v0] Souvenir link clicked, onViewSouvenirs:', onViewSouvenirs);
+                // Save XP first by calling onClose, then open gallery
+                if (onClose) {
+                  console.log('[v0] Calling onClose to save XP before opening gallery');
+                  onClose();
+                }
+                // Then open gallery after a short delay to ensure save completes
                 if (onViewSouvenirs) {
-                  onViewSouvenirs();
+                  setTimeout(() => {
+                    console.log('[v0] Opening gallery after XP save');
+                    onViewSouvenirs();
+                  }, 100);
                 }
               }}
               className="text-primary hover:text-primary/80 underline font-semibold"

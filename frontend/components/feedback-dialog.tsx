@@ -14,18 +14,25 @@ interface FeedbackDialogProps {
 
 export function FeedbackDialog({ route, onSubmit, onClose }: FeedbackDialogProps) {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reasons = [
     { value: 'too-hard', label: 'Too Difficult', icon: '💪' },
     { value: 'too-easy', label: 'Too Easy', icon: '😴' },
     { value: 'too-far', label: 'Too Far', icon: '🚗' },
     { value: 'not-interested', label: 'Not Interested', icon: '🤷' },
-    { value: 'wrong-type', label: 'Wrong Activity Type', icon: '🎯' },
   ];
 
-  const handleSubmit = () => {
-    if (selectedReason) {
-      onSubmit(selectedReason);
+  const handleSubmit = async () => {
+    if (selectedReason && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        await onSubmit(selectedReason);
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        // Reset submitting state on error so user can try again
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -70,10 +77,10 @@ export function FeedbackDialog({ route, onSubmit, onClose }: FeedbackDialogProps
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!selectedReason}
+            disabled={!selectedReason || isSubmitting}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
           >
-            Submit Feedback
+            {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
           </Button>
         </div>
       </Card>
